@@ -823,6 +823,9 @@ func (t *Mimir) setupModuleManager() error {
 		TenantFederation:         {Queryable},
 		All:                      {QueryFrontend, Querier, Ingester, Distributor, Purger, StoreGateway, Ruler, Compactor},
 	}
+
+	t.customModuleManager(mm, deps)
+
 	for mod, targets := range deps {
 		if err := mm.AddDependency(mod, targets...); err != nil {
 			return err
