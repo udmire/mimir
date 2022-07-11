@@ -10,20 +10,19 @@ import (
 
 // Config for gateway proxy purpose
 type Config struct {
-	InstanceConfig InstanceProxyConfig  `yaml:"instance"`
-	Default        ComponentProxyConfig `yaml:"default"`
-	AdminApi       ComponentProxyConfig `yaml:"admin_api"`
-	Alertmanager   ComponentProxyConfig `yaml:"alertmanager"`
-	Compactor      ComponentProxyConfig `yaml:"compactor"`
-	Distributor    ComponentProxyConfig `yaml:"distributor"`
-	Ingester       ComponentProxyConfig `yaml:"ingester"`
-	QueryFrontend  ComponentProxyConfig `yaml:"query_frontend"`
-	Ruler          ComponentProxyConfig `yaml:"ruler"`
-	StoreGateway   ComponentProxyConfig `yaml:"store_gateway"`
+	InstanceConfig InstanceProxyConfig   `yaml:"instance"`
+	Default        *ComponentProxyConfig `yaml:"default"`
+	AdminApi       *ComponentProxyConfig `yaml:"admin_api"`
+	Alertmanager   *ComponentProxyConfig `yaml:"alertmanager"`
+	Compactor      *ComponentProxyConfig `yaml:"compactor"`
+	Distributor    *ComponentProxyConfig `yaml:"distributor"`
+	Ingester       *ComponentProxyConfig `yaml:"ingester"`
+	QueryFrontend  *ComponentProxyConfig `yaml:"query_frontend"`
+	Ruler          *ComponentProxyConfig `yaml:"ruler"`
+	StoreGateway   *ComponentProxyConfig `yaml:"store_gateway"`
 }
 
 type ComponentProxyConfig struct {
-	Name         string         `yaml:"name" category:"advanced"`
 	Url          string         `yaml:"url" category:"advanced"`
 	Keepalive    bool           `yaml:"keepalive"`
 	ReadTimeout  model.Duration `yaml:"read_timeout"`
@@ -31,6 +30,13 @@ type ComponentProxyConfig struct {
 
 	TLSEnabled bool             `yaml:"tls_enabled" category:"advanced"`
 	TLS        tls.ClientConfig `yaml:",inline"`
+
+	Name string `json:"-"`
+}
+
+func (c *ComponentProxyConfig) WithName(name string) *ComponentProxyConfig {
+	c.Name = name
+	return c
 }
 
 // RegisterFlagsWithPrefix registers flags with prefix.

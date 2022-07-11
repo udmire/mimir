@@ -5,8 +5,12 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"
+	"github.com/grafana/mimir/pkg/custom/admin/store"
+	"github.com/grafana/mimir/pkg/custom/utils/access"
+	"github.com/grafana/mimir/pkg/custom/utils/token"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -23,6 +27,7 @@ type API struct {
 	cfg ApiConfig
 
 	client *Client
+	signer token.TokenSigner
 
 	ring       *ring.Ring
 	lifecycler *ring.BasicLifecycler
@@ -34,7 +39,7 @@ type API struct {
 	logger   log.Logger
 }
 
-func NewAPI(cfg ApiConfig, client *Client, log log.Logger, reg prometheus.Registerer) (*API, error) {
+func NewAPI(cfg ApiConfig, client *Client, signer token.TokenSigner, log log.Logger, reg prometheus.Registerer) (*API, error) {
 	subservices := []services.Service(nil)
 	var err error
 
@@ -59,6 +64,7 @@ func NewAPI(cfg ApiConfig, client *Client, log log.Logger, reg prometheus.Regist
 		client:   client,
 		registry: reg,
 		logger:   log,
+		signer:   signer,
 	}
 
 	a.subservices, err = services.NewManager(subservices...)
@@ -73,6 +79,11 @@ func NewAPI(cfg ApiConfig, client *Client, log log.Logger, reg prometheus.Regist
 }
 
 func (a *API) starting(ctx context.Context) (err error) {
+	err = a.createBuiltinAdminPolicies()
+	if err != nil {
+		return
+	}
+
 	return services.StartManagerAndAwaitHealthy(ctx, a.subservices)
 }
 
@@ -99,4 +110,46 @@ func (a *API) stopping(_ error) error {
 		return services.StopManagerAndAwaitStopped(context.Background(), a.subservices)
 	}
 	return nil
+}
+
+func (a *API) generateBuiltinAdminPolicy() *store.AccessPolicy {
+	return &store.AccessPolicy{
+		Name:        "__admin__",
+		DisplayName: "Built-in Admin",
+		Realms: []*store.Realm{
+			{
+				Tenant:  "*",
+				Cluster: a.getClusterName(),
+			},
+		},
+		Scopes: []string{
+			access.ADMIN,
+		},
+	}
+}
+
+func (a *API) getClusterName() string {
+	return a.cfg.ClusterName
+}
+
+func (a *API) createBuiltinAdminPolicies() error {
+	if a.client.cfg.DisableDefaultAdminPolicy {
+		level.Info(a.logger).Log("msg", "ignore create built-in admin policy")
+		return nil
+	}
+
+	level.Debug(a.logger).Log("msg", "start to create built-in admin policy")
+	policy := a.generateBuiltinAdminPolicy()
+	_, err := a.client.GetAccessPolicy(context.Background(), "__admin__")
+	if err == nil {
+		level.Debug(a.logger).Log("msg", "built-in admin policy already exists")
+		return nil
+	}
+
+	if err == store.ErrPolicyNotFound {
+		return a.client.CreateAccessPolicy(context.Background(), policy)
+	} else {
+		level.Warn(a.logger).Log("msg", "internal error found while creating built-in admin policy")
+		return err
+	}
 }

@@ -70,19 +70,3 @@ func newGateway(cfg Config, reg prometheus.Registerer, logger log.Logger) (g *Ga
 	g.Service = services.NewBasicService(g.starting, g.run, g.stopping)
 	return g, nil
 }
-
-type ProxyWorkers struct {
-	target  string
-	workers map[string]*proxyWorker
-}
-
-func (p *ProxyWorkers) AddressAdded(address string) {
-	p.workers[address] = &proxyWorker{}
-}
-
-func (p *ProxyWorkers) AddressRemoved(address string) {
-	p.workers[address] = nil
-}
-
-type proxyWorker struct {
-}

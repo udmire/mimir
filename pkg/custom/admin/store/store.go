@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils"
 	"github.com/grafana/mimir/pkg/util/validation"
 	"github.com/pkg/errors"
+	"k8s.io/utils/strings/slices"
 )
 
 type Status string
@@ -15,18 +16,6 @@ const (
 	ACTIVE   Status = "active"
 	INACTIVE        = "inactive"
 	UNKNOWN         = "unknown"
-)
-
-const (
-	ADMIN          = "admin"
-	ADMIN_READ     = "admin:read"
-	ALERTS_WRITE   = "alerts:write"
-	ALERT_READ     = "alerts:read"
-	METRICS_DELETE = "metrics:delete"
-	METRICS_READ   = "metrics:read"
-	METRICS_WRITE  = "metrics:write"
-	RULES_READ     = "rules:read"
-	RULES_WRITE    = "rules:write"
 )
 
 var (
@@ -59,10 +48,34 @@ type AccessPolicy struct {
 	Scopes      []string  `json:"scopes" yaml:"scopes"`
 }
 
+func (a *AccessPolicy) HasScope(scope string) bool {
+	return slices.Contains(a.Scopes, scope)
+}
+
+func (a *AccessPolicy) GetTenants() []string {
+	var tenants []string
+	for _, realm := range a.Realms {
+		tenants = append(tenants, realm.Tenant)
+	}
+	return tenants
+}
+
 type Realm struct {
 	Tenant        string              `json:"tenant" yaml:"tenant"`
 	Cluster       string              `json:"cluster" yaml:"cluster"`
 	LabelPolicies utils.LabelSelector `json:"label_policies,omitempty" yaml:"labelPolicies"`
+}
+
+func (r *Realm) GetTenant() string {
+	return r.Tenant
+}
+
+func (r *Realm) GetCluster() string {
+	return r.Cluster
+}
+
+func (r *Realm) GetLabelPolicies() utils.LabelSelector {
+	return r.LabelPolicies
 }
 
 type AccessPolicies struct {
@@ -78,6 +91,7 @@ type Token struct {
 	Status       Status    `json:"status,omitempty" yaml:"status"`
 	AccessPolicy string    `json:"access_policy,omitempty" yaml:"accessPolicy"`
 	Expiration   time.Time `json:"expiration,omitempty" yaml:"expiration"`
+	Token        string    `json:"token,omitempty" yaml:"token"`
 }
 
 type Tokens struct {

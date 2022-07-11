@@ -213,10 +213,11 @@ func (b *BucketApiStore) UpdateTenant(ctx context.Context, name string, tenant *
 
 func (b *BucketApiStore) GetTenant(ctx context.Context, name string) (*store.Tenant, error) {
 	tenant := &store.Tenant{}
+	objectKey := getComposedObjectKey(name)
 
-	reader, err := b.tenantsBucket.Get(ctx, name)
+	reader, err := b.tenantsBucket.Get(ctx, objectKey)
 	if b.tenantsBucket.IsObjNotFoundErr(err) {
-		level.Debug(b.logger).Log("msg", "tenant does not exist", "name", name)
+		level.Debug(b.logger).Log("msg", "tenant does not exist", "key", objectKey)
 		return nil, store.ErrTenantNotFound
 	}
 
@@ -311,7 +312,7 @@ func (b *BucketApiStore) UpdateAccessPolicy(ctx context.Context, name string, po
 func (b *BucketApiStore) GetAccessPolicy(ctx context.Context, name string) (*store.AccessPolicy, error) {
 	policy := &store.AccessPolicy{}
 
-	objKey := getComposedObjectKey(name, "info")
+	objKey := getComposedObjectKey(name)
 	reader, err := b.policiesBucket.Get(ctx, name)
 	if b.tenantsBucket.IsObjNotFoundErr(err) {
 		level.Debug(b.logger).Log("msg", "policy does not exist", "key", objKey)
@@ -405,6 +406,7 @@ func (b *BucketApiStore) GetToken(ctx context.Context, name string) (*store.Toke
 		return nil, errors.Wrapf(err, "failed to unmarshal token %s", objectKey)
 	}
 
+	token.Token = ""
 	return token, nil
 }
 
