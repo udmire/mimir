@@ -53,12 +53,16 @@ require (
 
 require (
 	github.com/alecthomas/chroma v0.10.0
+	github.com/coreos/go-oidc/v3 v3.2.0
+	github.com/go-openapi/runtime v0.23.1
+	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grafana-tools/sdk v0.0.0-20211220201350-966b3088eec9
 	github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
 require (
@@ -122,14 +126,12 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/loads v0.21.1 // indirect
-	github.com/go-openapi/runtime v0.23.1 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/validate v0.21.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -216,6 +218,7 @@ require (
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.57.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/telebot.v3 v3.0.0 // indirect
 )
 
