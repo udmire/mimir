@@ -8,8 +8,11 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/go-openapi/runtime/middleware/header"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"github.com/grafana/mimir/pkg/custom/admin/store"
+	"github.com/grafana/mimir/pkg/custom/utils/access"
+	"github.com/grafana/mimir/pkg/custom/utils/token"
 	"github.com/grafana/mimir/pkg/util"
 	util_log "github.com/grafana/mimir/pkg/util/log"
 	"github.com/weaveworks/common/errors"
@@ -259,22 +262,45 @@ func (a *API) ListToken(w http.ResponseWriter, req *http.Request) {
 func (a *API) CreateToken(w http.ResponseWriter, req *http.Request) {
 	logger := util_log.WithContext(req.Context(), a.logger)
 
-	token := &store.Token{}
-	err := ParseContent(req, token)
+	t := &store.Token{}
+	err := ParseContent(req, t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	level.Debug(logger).Log("msg", "create token with name", token.Name)
-	err = a.client.CreateToken(req.Context(), token)
+	policy, err := a.client.GetAccessPolicy(req.Context(), t.AccessPolicy)
+	if err != nil {
+		level.Error(logger).Log("msg", "invalid access policy", "err", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	level.Debug(logger).Log("msg", "create token with name", t.Name)
+	err = a.client.CreateToken(req.Context(), t)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	util.WriteJSONResponse(w, GenTokenWithContent(token))
+	isAdmin := false
+	for _, scope := range policy.Scopes {
+		if scope == access.ADMIN {
+			isAdmin = true
+			continue
+		}
+	}
+
+	claims := ToClaims(t, isAdmin)
+	tokenString, err := a.signer.Sign(claims)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	util.WriteJSONResponse(w, tokenString)
 }
+
 func (a *API) GetToken(w http.ResponseWriter, req *http.Request) {
 	logger := util_log.WithContext(req.Context(), a.logger)
 
@@ -319,6 +345,18 @@ func (a *API) DeleteToken(w http.ResponseWriter, req *http.Request) {
 	util.WriteJSONResponse(w, token)
 }
 
+func ToClaims(t *store.Token, hasAdminScope bool) *token.CustomClaims {
+	return &token.CustomClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   t.AccessPolicy,
+			IssuedAt:  jwt.NewNumericDate(t.CreatedAt.UTC()),
+			ExpiresAt: jwt.NewNumericDate(t.Expiration.UTC()),
+		},
+		Name:  t.DisplayName,
+		Admin: hasAdminScope,
+	}
+}
+
 func PathVariable(req *http.Request, name string) (string, error) {
 	vars := mux.Vars(req)
 	value, exists := vars[name]
@@ -356,8 +394,4 @@ func ParseContent(req *http.Request, s interface{}) error {
 	}
 	msg := "Content-Type header is not application/json or application/yaml"
 	return errors.Error(msg)
-}
-
-func GenTokenWithContent(token *store.Token) string {
-	return ""
 }

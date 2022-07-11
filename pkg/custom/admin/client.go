@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/mimir/pkg/custom/admin/store"
+	"github.com/grafana/mimir/pkg/custom/utils/access"
 	"github.com/grafana/mimir/pkg/storage/bucket"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -77,7 +78,7 @@ func (c *Client) initDefaultAdminPolicy() error {
 				},
 			},
 			Scopes: []string{
-				store.ADMIN,
+				access.ADMIN,
 			},
 		}
 		err := c.CreateAccessPolicy(context.Background(), policy)
