@@ -19,11 +19,8 @@ func WithAuth(next http.Handler, srv *AuthServer) http.Handler {
 		chain = append(chain, bearerTokenAuth)
 	}
 
-	routes := srv.GetPublicRoutes()
-	matchers := NewPublicRouteMatchers(routes)
-
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if matchers.Match(r) {
+		if srv.matchers.Match(r) {
 			next.ServeHTTP(rw, r)
 			return
 		}

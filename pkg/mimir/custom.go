@@ -67,18 +67,21 @@ func (t *Mimir) initGateway() (serv services.Service, err error) {
 	t.Server.HTTP.Use(func(handler http.Handler) http.Handler {
 		return auth.WithAuth(handler, authServer)
 	}, func(handler http.Handler) http.Handler {
-		return proxy.WithProxy(factory, logger)
+		return proxy.WithProxy(handler, factory, logger)
 	})
 
 	t.Gateway, err = gateway.NewGateway(t.Cfg.Gateway, prometheus.DefaultRegisterer, util_log.Logger)
 	if err != nil {
 		return nil, err
 	}
-	return t.Gateway, nil
+	return nil, nil
 }
 
 func (t *Mimir) initAdminAPI() (services.Service, error) {
 	t.Cfg.AdminApi.LeaderElection.Ring.ListenPort = t.Cfg.Server.GRPCListenPort
+	if t.Cfg.AdminApi.LeaderElection.Ring.KVStore.Store == "memberlist" {
+		t.Cfg.AdminApi.LeaderElection.Ring.KVStore.MemberlistKV = t.MemberlistKV.GetMemberlistKV
+	}
 
 	signer := token.NewSigner([]byte(t.Cfg.Auth.Admin.Hmac.Secret))
 	aa, err := admin.NewAPI(t.Cfg.AdminApi, t.AdminClient, signer, util_log.Logger, prometheus.DefaultRegisterer)
@@ -113,8 +116,8 @@ func (t *Mimir) customModuleManager(mm *modules.Manager, deps map[string][]strin
 	mm.RegisterModule(AdminClient, t.initAdminClient, modules.UserInvisibleModule)
 	mm.RegisterModule(TokenGen, t.initTokenGen)
 
-	deps[Gateway] = []string{Server, AdminClient}
-	deps[AdminApi] = []string{Server, API, AdminClient}
+	deps[Gateway] = []string{Server, API, AdminClient}
+	deps[AdminApi] = []string{Server, API, AdminClient, MemberlistKV}
 	deps[AdminClient] = []string{}
 	deps[TokenGen] = []string{AdminClient}
 }

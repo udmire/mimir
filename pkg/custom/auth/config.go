@@ -19,13 +19,14 @@ func (c *OverrideConfig) RegisterFlags(f *flag.FlagSet) {
 
 type AdminConfig struct {
 	CacheTTL time.Duration `yaml:"cache_ttl" category:"advanced"`
-	OIDC     *OidcConfig   `yaml:"oidc"`
-	Hmac     *HmacConfig   `yaml:"hmac,omitempty"`
+	OIDC     OidcConfig    `yaml:"oidc"`
+	Hmac     HmacConfig    `yaml:"hmac,omitempty"`
 }
 
 func (c *AdminConfig) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	f.DurationVar(&c.CacheTTL, "auth.cache.ttl", 10*time.Minute, "how long auth responses should be cached.")
 	c.OIDC.RegisterFlags(f, logger)
+	c.Hmac.RegisterFlags(f)
 }
 
 type HmacConfig struct {
@@ -41,11 +42,11 @@ type Config struct {
 	Type               string         `yaml:"type"`
 	RequiredForMetrics bool           `yaml:"required_for_metrics" category:"advanced"`
 	Override           OverrideConfig `yaml:"override"`
-	Admin              *AdminConfig   `yaml:"admin"`
+	Admin              AdminConfig    `yaml:"admin"`
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
-	f.StringVar(&c.Type, "auth.type", "enterprise", "method for authenticating incoming HTTP requests, (trust, enterprise).")
+	f.StringVar(&c.Type, "auth.type", "trust", "method for authenticating incoming HTTP requests, (trust, enterprise).")
 	f.BoolVar(&c.RequiredForMetrics, "auth.required-for-metrics", false, "requires admin level auth for the /metrics endpoint.")
 	c.Override.RegisterFlags(f)
 	c.Admin.RegisterFlags(f, logger)
@@ -57,13 +58,13 @@ type OAuthClient struct {
 }
 
 type OidcConfig struct {
-	IssuerUrl           string       `yaml:"issuer_url"`
-	AccessPolicyClaim   string       `yaml:"access_policy_claim"`
-	AccessPolicyRegex   string       `yaml:"access_policy_regex" category:"advanced"`
-	Audience            string       `yaml:"audience"`
-	DefaultAccessPolicy string       `yaml:"default_access_policy" category:"advanced"`
-	AdfsCompatibility   bool         `yaml:"adfs_compatibility" category:"advanced"`
-	Client              *OAuthClient `yaml:"client,omitempty"`
+	IssuerUrl           string      `yaml:"issuer_url"`
+	AccessPolicyClaim   string      `yaml:"access_policy_claim"`
+	AccessPolicyRegex   string      `yaml:"access_policy_regex" category:"advanced"`
+	Audience            string      `yaml:"audience"`
+	DefaultAccessPolicy string      `yaml:"default_access_policy" category:"advanced"`
+	AdfsCompatibility   bool        `yaml:"adfs_compatibility" category:"advanced"`
+	Client              OAuthClient `yaml:"client,omitempty"`
 	RedirectURL         string
 	TokenDuration       time.Duration
 }

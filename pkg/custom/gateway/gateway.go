@@ -1,11 +1,9 @@
 package gateway
 
 import (
-	"context"
 	"flag"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/dskit/services"
 	"github.com/grafana/mimir/pkg/custom/gateway/proxy"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -20,27 +18,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 }
 
 type Gateway struct {
-	services.Service
-
 	cfg Config
-
-	subservices        *services.Manager
-	subservicesWatcher *services.FailureWatcher
 
 	registry prometheus.Registerer
 	logger   log.Logger
-}
-
-func (g *Gateway) starting(ctx context.Context) error {
-	return services.StartManagerAndAwaitHealthy(ctx, g.subservices)
-}
-
-func (g *Gateway) run(ctx context.Context) error {
-	return nil
-}
-
-func (g *Gateway) stopping(err error) error {
-	return services.StopManagerAndAwaitStopped(context.Background(), g.subservices)
 }
 
 // NewGateway creates a new gateway server.
@@ -54,19 +35,6 @@ func newGateway(cfg Config, reg prometheus.Registerer, logger log.Logger) (g *Ga
 		registry: reg,
 		logger:   logger,
 	}
-	// workers := &ProxyWorkers{
-	// 	target:  "",
-	// 	workers: map[string]*proxyWorker{},
-	// }
-	subservices := []services.Service(nil)
 
-	g.subservices, err = services.NewManager(subservices...)
-	if err != nil {
-		return nil, err
-	}
-	g.subservicesWatcher = services.NewFailureWatcher()
-	g.subservicesWatcher.WatchManager(g.subservices)
-
-	g.Service = services.NewBasicService(g.starting, g.run, g.stopping)
 	return g, nil
 }
