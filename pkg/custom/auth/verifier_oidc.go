@@ -13,19 +13,19 @@ import (
 type oidcPrincipalVerifier struct {
 	logger log.Logger
 
-	cfg          *OidcConfig
+	cfg          OidcConfig
 	regexp       *relabel.Regexp
 	oidcVerifier *oidc.IDTokenVerifier
 }
 
-func NewOidcPrincipalVerifier(cfg *OidcConfig, logger log.Logger) (token.TokenVerifier, error) {
+func NewOidcPrincipalVerifier(cfg OidcConfig, logger log.Logger) (token.TokenVerifier, error) {
 	provider, err := oidc.NewProvider(context.Background(), cfg.IssuerUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	oidcCfg := &oidc.Config{}
-	if cfg.Client == nil || cfg.Client.ClientID == "" {
+	if cfg.Client.ClientID == "" {
 		oidcCfg.SkipClientIDCheck = true
 	} else {
 		oidcCfg.ClientID = cfg.Client.ClientID

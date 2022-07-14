@@ -10,16 +10,16 @@ import (
 
 // Config for gateway proxy purpose
 type Config struct {
-	InstanceConfig InstanceProxyConfig   `yaml:"instance"`
-	Default        *ComponentProxyConfig `yaml:"default"`
-	AdminApi       *ComponentProxyConfig `yaml:"admin_api"`
-	Alertmanager   *ComponentProxyConfig `yaml:"alertmanager"`
-	Compactor      *ComponentProxyConfig `yaml:"compactor"`
-	Distributor    *ComponentProxyConfig `yaml:"distributor"`
-	Ingester       *ComponentProxyConfig `yaml:"ingester"`
-	QueryFrontend  *ComponentProxyConfig `yaml:"query_frontend"`
-	Ruler          *ComponentProxyConfig `yaml:"ruler"`
-	StoreGateway   *ComponentProxyConfig `yaml:"store_gateway"`
+	InstanceConfig InstanceProxyConfig  `yaml:"instance"`
+	Default        ComponentProxyConfig `yaml:"default"`
+	AdminApi       ComponentProxyConfig `yaml:"admin_api"`
+	Alertmanager   ComponentProxyConfig `yaml:"alertmanager"`
+	Compactor      ComponentProxyConfig `yaml:"compactor"`
+	Distributor    ComponentProxyConfig `yaml:"distributor"`
+	Ingester       ComponentProxyConfig `yaml:"ingester"`
+	QueryFrontend  ComponentProxyConfig `yaml:"query_frontend"`
+	Ruler          ComponentProxyConfig `yaml:"ruler"`
+	StoreGateway   ComponentProxyConfig `yaml:"store_gateway"`
 }
 
 type ComponentProxyConfig struct {
@@ -52,17 +52,14 @@ func (c *ComponentProxyConfig) RegisterFlagsWithPrefix(prefix string, f *flag.Fl
 	c.TLS.RegisterFlagsWithPrefix(prefix, f)
 }
 
-type ComponentsProxyConfig struct {
-	Default    *ComponentProxyConfig   `yaml:"default"`
-	Components []*ComponentProxyConfig `yaml:",inline"`
-}
-
 type InstanceProxyConfig struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled bool   `yaml:"enabled"`
+	Pattern string `yaml:"pattern"`
 }
 
 func (c *InstanceProxyConfig) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	f.BoolVar(&c.Enabled, "gateway.proxy.instance.enabled", true, "Whether proxy for the whole app instances by name.")
+	f.StringVar(&c.Pattern, "gateway.proxy.instance.pattern", "", "build target backend with the pattern.")
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {

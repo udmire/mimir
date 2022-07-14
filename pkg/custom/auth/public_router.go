@@ -22,7 +22,9 @@ func NewPublicRouteMatchers(publicRoutes []string) *publicRouteMatchers {
 			matchers = append(matchers, compile)
 		}
 	}
-	return &publicRouteMatchers{}
+	return &publicRouteMatchers{
+		matchers: matchers,
+	}
 }
 
 func (p *publicRouteMatchers) Match(req *http.Request) bool {

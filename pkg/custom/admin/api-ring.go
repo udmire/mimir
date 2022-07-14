@@ -52,7 +52,7 @@ func (cfg *RingConfig) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	cfg.KVStore.RegisterFlagsWithPrefix("admin-api.leader-election.ring.", "leader-election/", f)
 	f.DurationVar(&cfg.HeartbeatPeriod, "admin-api.leader-election.ring.heartbeat-period", 15*time.Second, "Period at which to heartbeat to the ring.")
 	f.DurationVar(&cfg.HeartbeatTimeout, "admin-api.leader-election.ring.heartbeat-timeout", time.Minute, "The heartbeat timeout after which admin-api instances are considered unhealthy within the ring")
-	f.DurationVar(&cfg.TokensObservePeriod, "-admin-api.leader-election.ring.tokens-observe-period", time.Minute, "Period to wait after generating tokens to resolve collisions. Required when using a gossip ring KV store.")
+	f.DurationVar(&cfg.TokensObservePeriod, "admin-api.leader-election.ring.tokens-observe-period", time.Minute, "Period to wait after generating tokens to resolve collisions. Required when using a gossip ring KV store.")
 
 	// Instance flags
 	cfg.InstanceInterfaceNames = netutil.PrivateNetworkInterfacesWithFallback([]string{"eth0", "en0"}, logger)

@@ -13,8 +13,14 @@ import (
 )
 
 var (
-	publicRoutes = []string{}
-	metricRoute  = "/metrics"
+	publicRoutes = []string{
+		"/",
+		"/config",
+		"/runtime_config",
+		"/services",
+		"/debug/*",
+	}
+	metricRoute = "/metrics"
 )
 
 type AuthServer struct {
@@ -22,6 +28,8 @@ type AuthServer struct {
 	logger log.Logger
 
 	defaultToken string
+
+	matchers *publicRouteMatchers
 
 	verifier  token.TokenVerifier
 	loader    token.AuthContextLoader
@@ -62,6 +70,8 @@ func NewAuthServer(cfg Config, client *admin.Client, logger log.Logger) (*AuthSe
 		level.Warn(logger).Log("msg", err.Error())
 	}
 
+	auth.matchers = NewPublicRouteMatchers(auth.GetPublicRoutes())
+
 	return auth, nil
 }
 
@@ -71,6 +81,7 @@ func initVerifier(cfg Config, logger log.Logger) (verifier token.TokenVerifier, 
 		verifier, err = NewOidcPrincipalVerifier(cfg.Admin.OIDC, logger)
 		break
 	case "trust":
+		verifier = token.NewVerifier([]byte(cfg.Admin.Hmac.Secret))
 	default:
 		verifier = token.NewVerifier([]byte(cfg.Admin.Hmac.Secret))
 		break
@@ -81,7 +92,7 @@ func initVerifier(cfg Config, logger log.Logger) (verifier token.TokenVerifier, 
 
 func (s *AuthServer) GetPublicRoutes() []string {
 	var routes []string
-	if s.cfg.RequiredForMetrics {
+	if !s.cfg.RequiredForMetrics {
 		routes = append(routes, metricRoute)
 	}
 	routes = append(routes, publicRoutes...)
