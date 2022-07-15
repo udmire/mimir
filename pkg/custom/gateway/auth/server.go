@@ -6,7 +6,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/mimir/pkg/custom/admin"
-	"github.com/grafana/mimir/pkg/custom/auth/access"
+	"github.com/grafana/mimir/pkg/custom/gateway/auth/access"
 	"github.com/grafana/mimir/pkg/custom/utils/token"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -39,10 +39,11 @@ type AuthServer struct {
 	authSuccess  *prometheus.CounterVec
 }
 
-func NewAuthServer(cfg Config, client *admin.Client, logger log.Logger) (*AuthServer, error) {
+func NewAuthServer(cfg Config, eval access.Evaluator, client *admin.Client, logger log.Logger) (*AuthServer, error) {
 	auth := &AuthServer{
-		cfg:    cfg,
-		logger: logger,
+		cfg:       cfg,
+		logger:    logger,
+		evaluator: eval,
 	}
 
 	auth.authFailures = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -63,7 +64,6 @@ func NewAuthServer(cfg Config, client *admin.Client, logger log.Logger) (*AuthSe
 	auth.verifier = verifier
 
 	auth.loader = NewAuthContextLoader(client, logger)
-	auth.evaluator = access.NewPermissionEvaluator(logger)
 
 	err = auth.initOverrideToken()
 	if err != nil {
