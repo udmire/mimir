@@ -23,6 +23,11 @@ const (
 	Instance      = "instance"
 )
 
+const (
+	DynamicInstanceRoutePrefix = "/dynamic/*"
+	DynamicInstanceRoute       = "/dynamic/(*)(**)"
+)
+
 // AccessPermission defines permissions required for the given action
 type AccessPermission interface {
 	Matches(action string) bool
@@ -176,24 +181,24 @@ func GetComponentRoutes(component string) *ComponentRoutes {
 	return componentRoutesMap[component]
 }
 
-func GetAllRoutesPermissions() []AccessPermission {
-	var allAccessPermissions AccessPermissions
-	allAccessPermissions = append(allAccessPermissions, DistributorRoutes...)
-	allAccessPermissions = append(allAccessPermissions, QueryFrontendRoutes...)
-	allAccessPermissions = append(allAccessPermissions, RulerRoutes...)
-
-	allAccessPermissions = append(allAccessPermissions, AlertManagerRoutes...)
-	allAccessPermissions = append(allAccessPermissions, QuerierRoutes...)
-	allAccessPermissions = append(allAccessPermissions, IngesterRoutes...)
-
-	allAccessPermissions = append(allAccessPermissions, StoreGatewayRoutes...)
-	allAccessPermissions = append(allAccessPermissions, CompactorRoutes...)
-	allAccessPermissions = append(allAccessPermissions, PurgerRoutes...)
-
-	allAccessPermissions = append(allAccessPermissions, AllComponentRoutes...)
-	allAccessPermissions = append(allAccessPermissions, AdminApiRoutes...)
-	allAccessPermissions = append(allAccessPermissions, NodeApiRoutes...)
-	allAccessPermissions = append(allAccessPermissions, DefaultRoutes...)
-
-	return allAccessPermissions
-}
+// func GetAllRoutesPermissions() []AccessPermission {
+// 	var allAccessPermissions AccessPermissions
+// 	allAccessPermissions = append(allAccessPermissions, DistributorRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, QueryFrontendRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, RulerRoutes...)
+//
+// 	allAccessPermissions = append(allAccessPermissions, AlertManagerRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, QuerierRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, IngesterRoutes...)
+//
+// 	allAccessPermissions = append(allAccessPermissions, StoreGatewayRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, CompactorRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, PurgerRoutes...)
+//
+// 	allAccessPermissions = append(allAccessPermissions, AllComponentRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, AdminApiRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, NodeApiRoutes...)
+// 	allAccessPermissions = append(allAccessPermissions, DefaultRoutes...)
+//
+// 	return allAccessPermissions
+// }

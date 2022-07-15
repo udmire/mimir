@@ -3,15 +3,13 @@ package mimir
 import (
 	"context"
 	"flag"
-	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/modules"
 	"github.com/grafana/dskit/services"
 	"github.com/grafana/mimir/pkg/custom/admin"
-	"github.com/grafana/mimir/pkg/custom/auth"
 	"github.com/grafana/mimir/pkg/custom/gateway"
-	"github.com/grafana/mimir/pkg/custom/gateway/proxy"
+	"github.com/grafana/mimir/pkg/custom/gateway/auth"
 	"github.com/grafana/mimir/pkg/custom/license"
 	"github.com/grafana/mimir/pkg/custom/tokengen"
 	"github.com/grafana/mimir/pkg/custom/utils/token"
@@ -55,22 +53,8 @@ type CustomModule struct {
 
 func (t *Mimir) initGateway() (serv services.Service, err error) {
 	logger := util_log.Logger
-	authServer, err := auth.NewAuthServer(t.Cfg.Auth, t.AdminClient, logger)
-	if err != nil {
-		return nil, err
-	}
-	factory, err := proxy.NewReverseProxyFactory(t.Cfg.Gateway.Proxy, logger)
-	if err != nil {
-		return nil, err
-	}
 
-	t.Server.HTTP.Use(func(handler http.Handler) http.Handler {
-		return auth.WithAuth(handler, authServer)
-	}, func(handler http.Handler) http.Handler {
-		return proxy.WithProxy(handler, factory, logger)
-	})
-
-	t.Gateway, err = gateway.NewGateway(t.Cfg.Gateway, prometheus.DefaultRegisterer, util_log.Logger)
+	t.Gateway, err = gateway.NewGateway(t.Cfg.Gateway, t.Cfg.Auth, t.AdminClient, prometheus.DefaultRegisterer, logger)
 	if err != nil {
 		return nil, err
 	}

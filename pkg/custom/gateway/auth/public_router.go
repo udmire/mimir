@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/grafana/mimir/pkg/custom/utils"
+	"github.com/grafana/mimir/pkg/custom/utils/routes"
 )
 
 type RouteMatcher interface {
@@ -20,6 +21,7 @@ func NewPublicRouteMatchers(publicRoutes []string) *publicRouteMatchers {
 		for _, route := range publicRoutes {
 			compile := utils.MustCompile(route)
 			matchers = append(matchers, compile)
+			matchers = append(matchers, utils.MustCompile(routes.DynamicInstanceRoutePrefix+route))
 		}
 	}
 	return &publicRouteMatchers{

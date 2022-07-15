@@ -26,6 +26,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const messageSizeLargerErrFmt = "received message larger than max (%d > %d)"
+
 // IsRequestBodyTooLarge returns true if the error is "http: request body too large".
 func IsRequestBodyTooLarge(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "http: request body too large")
@@ -170,29 +172,14 @@ func ParseProtoReader(ctx context.Context, reader io.Reader, expectedSize, maxSi
 	return body, nil
 }
 
-type MsgSizeTooLargeErr struct {
-	Actual, Limit int
-}
-
-func (e MsgSizeTooLargeErr) Error() string {
-	return fmt.Sprintf("the request has been rejected because its size of %d bytes exceeds the limit of %d bytes", e.Actual, e.Limit)
-}
-
-// Needed for errors.Is to work properly.
-func (e MsgSizeTooLargeErr) Is(err error) bool {
-	_, ok1 := err.(MsgSizeTooLargeErr)
-	_, ok2 := err.(*MsgSizeTooLargeErr)
-	return ok1 || ok2
-}
-
 func decompressRequest(dst []byte, reader io.Reader, expectedSize, maxSize int, compression CompressionType, sp opentracing.Span) (body []byte, err error) {
 	defer func() {
 		if err != nil && len(body) > maxSize {
-			err = MsgSizeTooLargeErr{Actual: len(body), Limit: maxSize}
+			err = fmt.Errorf(messageSizeLargerErrFmt, len(body), maxSize)
 		}
 	}()
 	if expectedSize > maxSize {
-		return nil, MsgSizeTooLargeErr{Actual: expectedSize, Limit: maxSize}
+		return nil, fmt.Errorf(messageSizeLargerErrFmt, expectedSize, maxSize)
 	}
 	buffer, ok := tryBufferFromReader(reader)
 	if ok {
@@ -231,7 +218,7 @@ func decompressFromReader(dst []byte, reader io.Reader, expectedSize, maxSize in
 
 func decompressFromBuffer(dst []byte, buffer *bytes.Buffer, maxSize int, compression CompressionType, sp opentracing.Span) ([]byte, error) {
 	if len(buffer.Bytes()) > maxSize {
-		return nil, MsgSizeTooLargeErr{Actual: len(buffer.Bytes()), Limit: maxSize}
+		return nil, fmt.Errorf(messageSizeLargerErrFmt, len(buffer.Bytes()), maxSize)
 	}
 	switch compression {
 	case NoCompression:
@@ -246,7 +233,7 @@ func decompressFromBuffer(dst []byte, buffer *bytes.Buffer, maxSize int, compres
 			return nil, err
 		}
 		if size > maxSize {
-			return nil, MsgSizeTooLargeErr{Actual: size, Limit: maxSize}
+			return nil, fmt.Errorf(messageSizeLargerErrFmt, size, maxSize)
 		}
 		body, err := snappy.Decode(dst, buffer.Bytes())
 		if err != nil {

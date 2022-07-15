@@ -4,7 +4,14 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/gorilla/mux"
 )
+
+type Proxy interface {
+	HandlerFunc() http.HandlerFunc
+	RegisterRoute(*mux.Router)
+}
 
 func NewProxy(cfg *ComponentProxyConfig) (ReverseProxy, error) {
 	return NewHttpReverseProxy(func(req *http.Request) {}, func(req *http.Request) (*httputil.ReverseProxy, error) {

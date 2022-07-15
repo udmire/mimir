@@ -7,10 +7,9 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils"
 )
 
-// WithAuth middleware adds auth validation to API handlers.
-//
+// WithAuthentication middleware adds auth validation to API handlers.
 // Unauthorized requests will be denied with a 401 status code.
-func WithAuth(next http.Handler, srv *AuthServer) http.Handler {
+func WithAuthentication(next http.Handler, srv *AuthServer) http.Handler {
 	basicAuth := BasicAuthPrincipalReader(srv.logger, srv.verifier)
 	chain := PrincipalChain{basicAuth}
 
@@ -43,6 +42,13 @@ func WithAuth(next http.Handler, srv *AuthServer) http.Handler {
 		err = principal.LoadContext(srv.loader)
 		if err != nil {
 			utils.JSONError(srv.logger, rw, "Invalid Token Content", http.StatusUnauthorized)
+			return
+		}
+
+		principal.Authenticate()
+
+		if !principal.IsAuthenticated() {
+			utils.JSONError(srv.logger, rw, "Authentication failed", http.StatusUnauthorized)
 			return
 		}
 
