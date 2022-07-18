@@ -49,28 +49,28 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Ingester, "/ingester/shutdown", access.ADMIN)
 	registry.Register(Ingester, "/ingester/ring", []string{http.MethodGet}, []string{access.ADMIN, access.ADMIN_READ})
 
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/query", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/query_range", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/query_exemplars", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/series", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/labels", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/label/*/values", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/metadata", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/read", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/cardinality/label_names", access.METRICS_READ)
-	registry.RegisterAll(QueryFrontend, "/*/api/v1/cardinality/label_values", access.METRICS_READ)
-	registry.Register(QueryFrontend, "/*/api/v1/status/buildinfo", []string{http.MethodGet}, []string{access.METRICS_READ})
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query_range", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query_exemplars", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/series", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/labels", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/label/{name}/values", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/metadata", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/read", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/cardinality/label_names", access.METRICS_READ)
+	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/cardinality/label_values", access.METRICS_READ)
+	registry.Register(QueryFrontend, "/{promPrefix}/api/v1/status/buildinfo", []string{http.MethodGet}, []string{access.METRICS_READ})
 
 	registry.Register(Querier, "/api/v1/user_stats", []string{http.MethodGet}, []string{access.METRICS_READ})
 
 	registry.Register(StoreGateway, "/store-gateway/**", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 
 	registry.RegisterAll(Ruler, "/ruler/*", access.ADMIN, access.ADMIN_READ)
-	registry.Register(Ruler, "/*/api/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/*/api/v1/alerts", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/*/config/v1/rules**", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/*/config/v1/rules**", []string{http.MethodPost}, []string{access.RULES_WRITE})
-	registry.Register(Ruler, "/*/config/v1/rules**", []string{http.MethodDelete}, []string{access.RULES_WRITE})
+	registry.Register(Ruler, "/{promPrefix}/api/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
+	registry.Register(Ruler, "/{promPrefix}/api/v1/alerts", []string{http.MethodGet}, []string{access.RULES_READ})
+	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
+	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodPost, http.MethodDelete},
+		[]string{access.RULES_WRITE})
 
 	registry.Register(Compactor, "/compactor/*", []string{http.MethodGet}, []string{access.ADMIN, access.ADMIN_READ})
 
@@ -84,5 +84,5 @@ func Init(registry routes.Registry) {
 	registry.Register(Purger, "/purger/*", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 	registry.RegisterStrict(Purger, "/purger/*", []string{http.MethodPost}, []string{access.ADMIN, access.METRICS_DELETE})
 
-	registry.RegisterAll(Default, "/**")
+	// registry.RegisterAll(Default, "/**")
 }

@@ -2,9 +2,9 @@ package proxy
 
 import (
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 )
 
@@ -13,23 +13,26 @@ type Proxy interface {
 	RegisterRoute(*mux.Router)
 }
 
-func NewProxy(cfg *ComponentProxyConfig) (ReverseProxy, error) {
-	return NewHttpReverseProxy(func(req *http.Request) {}, func(req *http.Request) (*httputil.ReverseProxy, error) {
+func NewProxy(logger log.Logger, cfg *ComponentProxyConfig) (ReverseProxy, error) {
+	return NewHttpReverseProxy(logger, func(req *http.Request) *url.URL {
 		remote, err := url.Parse(cfg.Url)
 		if err != nil {
-			return nil, err
+			return nil
 		}
-		return httputil.NewSingleHostReverseProxy(remote), nil
+		return remote
+	}, func(req *http.Request) string {
+		return req.URL.Path
 	}), nil
 }
 
-func NewDynamicProxy(target dynamicTarget, modifier requestModifier) (ReverseProxy, error) {
-	return NewHttpReverseProxy(modifier, func(req *http.Request) (*httputil.ReverseProxy, error) {
-		t := target(req.RequestURI)
-		remote, err := url.Parse(t)
-		if err != nil {
-			return nil, err
-		}
-		return httputil.NewSingleHostReverseProxy(remote), nil
-	}), nil
+func NewDynamicProxy(logger log.Logger, target TargetFunc, path PathFunc) (ReverseProxy, error) {
+	return NewHttpReverseProxy(logger, target, path), nil
+	// return NewHttpReverseProxy(modifier, func(req *http.Request) (*httputil.ReverseProxy, error) {
+	// 	t := target(req)
+	// 	remote, err := url.Parse(t)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return httputil.NewSingleHostReverseProxy(remote), nil
+	// }), nil
 }

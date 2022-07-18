@@ -1,12 +1,5 @@
 package proxy
 
-import (
-	"net/http"
-)
-
-type dynamicTarget func(instance string) string
-type requestModifier func(req *http.Request)
-
 // type dynamicHttpReverseProxyWrapper struct {
 // 	proxy   ReverseProxy
 // 	matcher *delegateMatcher

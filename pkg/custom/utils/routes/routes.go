@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -40,9 +42,25 @@ func (i *internalRoute) Pattern() string {
 }
 
 func (i *internalRoute) Register(router *mux.Router, hf http.HandlerFunc) {
+	route := router.NewRoute()
 	if len(i.methods) == 1 && i.methods[0] != "*" {
-		router.Methods(i.methods...)
+		route.Methods(i.methods...)
 	}
 
-	router.Path(i.pattern).HandlerFunc(hf)
+	route.Path(precessPattern(i.pattern)).HandlerFunc(hf)
+}
+
+func precessPattern(pattern string) string {
+	counter := 0
+	for {
+		if !strings.Contains(pattern, "/*/") {
+			break
+		}
+		pattern = strings.Replace(pattern, "/*/", fmt.Sprintf("/{param%d}/", counter), 1)
+		counter++
+	}
+	if strings.HasSuffix(pattern, "**") {
+		pattern = strings.Replace(pattern, "**", fmt.Sprintf("{param%d:.+}", counter), 1)
+	}
+	return pattern
 }

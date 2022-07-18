@@ -58,6 +58,9 @@ func (t *Mimir) initGateway() (serv services.Service, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	t.Gateway.Register(t.Server.HTTP)
+
 	return nil, nil
 }
 

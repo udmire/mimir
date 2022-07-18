@@ -320,13 +320,13 @@ func (b *BucketApiStore) GetAccessPolicy(ctx context.Context, name string) (*sto
 	}
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get policy %s", objKey)
+		return nil, errors.Wrapf(err, "failed to get policy %s", name)
 	}
 	defer func() { _ = reader.Close() }()
 
 	buf, err := ioutil.ReadAll(reader)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read policy %s", objKey)
+		return nil, errors.Wrapf(err, "failed to read policy %s", name)
 	}
 
 	err = yaml.Unmarshal(buf, policy)

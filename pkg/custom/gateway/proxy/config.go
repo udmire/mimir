@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/dskit/crypto/tls"
+	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/model"
 )
 
@@ -31,7 +32,23 @@ type ComponentProxyConfig struct {
 	TLSEnabled bool             `yaml:"tls_enabled" category:"advanced"`
 	TLS        tls.ClientConfig `yaml:",inline"`
 
+	Routes []RouteConfig `yaml:"routes,omitempty"`
+
 	Name string `json:"-"`
+}
+
+type RouteConfig struct {
+	Pattern     string                 `yaml:"pattern"`
+	Methods     flagext.StringSliceCSV `yaml:"methods"`
+	Permissions flagext.StringSliceCSV `yaml:"permissions"`
+	Restrict    bool                   `yaml:"restrict"`
+}
+
+func (r *RouteConfig) RegisterFlags(prefix string, f *flag.FlagSet) {
+	f.StringVar(&r.Pattern, prefix+".pattern", "", "Route Pattern")
+	f.Var(&r.Methods, prefix+".methods", "List of pattern supported Method")
+	f.Var(&r.Permissions, prefix+".permissions", "List of required permissions")
+	f.BoolVar(&r.Restrict, prefix+".restrict", false, "Restrict to meet all the permissions")
 }
 
 func (c *ComponentProxyConfig) WithName(name string) *ComponentProxyConfig {
