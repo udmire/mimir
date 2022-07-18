@@ -3,6 +3,7 @@ package proxy
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/go-kit/log"
@@ -24,7 +25,7 @@ type instanceProxy struct {
 }
 
 func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error) {
-	modifier := func(req *http.Request) {
+	path := func(req *http.Request) string {
 		vars := mux.Vars(req)
 
 		path, exists := vars[DynamicPath]
@@ -36,14 +37,23 @@ func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error
 			path = "/" + path
 		}
 
-		req.URL.Path = path
+		return path
 	}
 
-	target := func(instance string) string {
-		return fmt.Sprintf(cfg.Pattern, instance)
+	target := func(req *http.Request) *url.URL {
+		vars := mux.Vars(req)
+		instance, exists := vars[Instance]
+		if !exists {
+			return nil
+		}
+		target, err := url.Parse(fmt.Sprintf(cfg.Pattern, instance))
+		if err != nil {
+			return nil
+		}
+		return target
 	}
 
-	proxy, err := NewDynamicProxy(target, modifier)
+	proxy, err := NewDynamicProxy(logger, target, path)
 	if err != nil {
 		return nil, err
 	}

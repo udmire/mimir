@@ -34,6 +34,8 @@ type PrincipalReader interface {
 	// Principal extracts a principal from the http.Request.
 	// It's not an error for there to be no principal in the request.
 	Principal(r *http.Request) (token.IPrincipal, error)
+
+	CanProcess(r *http.Request) bool
 }
 
 type basicAuthPrincipalReader struct {
@@ -48,6 +50,11 @@ func (b *basicAuthPrincipalReader) Principal(req *http.Request) (token.IPrincipa
 		return nil, errors.New("invalid basic authentication information")
 	}
 	return token.NewPrincipal(password, auth), nil
+}
+
+func (b *basicAuthPrincipalReader) CanProcess(req *http.Request) bool {
+	auth := req.Header.Get("Authorization")
+	return strings.HasPrefix(auth, "Basic ")
 }
 
 func BasicAuthPrincipalReader(logger log.Logger, verifier token.TokenVerifier) PrincipalReader {
@@ -76,6 +83,11 @@ func (b *bearTokenPrincipalReader) Principal(req *http.Request) (token.IPrincipa
 	}
 
 	return token.NewPrincipal(password, tenant), nil
+}
+
+func (b *bearTokenPrincipalReader) CanProcess(req *http.Request) bool {
+	auth := req.Header.Get("Authorization")
+	return strings.HasPrefix(auth, "Bearer ")
 }
 
 func BearerTokenPrincipalReader(logger log.Logger, verifier token.TokenVerifier) PrincipalReader {

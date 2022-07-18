@@ -17,7 +17,7 @@ type componentProxy struct {
 }
 
 func NewComponentProxy(cfg *ComponentProxyConfig, logger log.Logger, routes []routes.Route) (Proxy, error) {
-	proxy, err := NewProxy(cfg)
+	proxy, err := NewProxy(logger, cfg)
 	if err != nil {
 		return nil, err
 	}

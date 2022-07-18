@@ -17,7 +17,7 @@ type httpReverseProxyFactory struct {
 }
 
 func HasComponent(cc ComponentProxyConfig) bool {
-	return cc == ComponentProxyConfig{} || cc.Url == ""
+	return cc.Url == ""
 }
 
 func NewReverseProxyFactory(cfg Config, registry routes.Registry, logger log.Logger) (ReverseProxyFactory, error) {
