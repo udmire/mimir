@@ -12,6 +12,7 @@ func (a *API) RegisterAPI(api *api.API) {
 	prefix := "/admin/api/v3"
 	api.RegisterRoute(path.Join(prefix, "/clusters"), http.HandlerFunc(a.ListClusters), true, true, "GET")
 	api.RegisterRoute(path.Join(prefix, "/clusters/{name}"), http.HandlerFunc(a.GetCluster), true, true, "GET")
+	api.RegisterRoute(path.Join(prefix, "/clusters"), http.HandlerFunc(a.CreateCluster), true, true, "POST")
 
 	api.RegisterRoute(path.Join(prefix, "/tenants"), http.HandlerFunc(a.ListTenants), true, true, "GET")
 	api.RegisterRoute(path.Join(prefix, "/tenants"), http.HandlerFunc(a.CreateTenant), true, true, "POST")

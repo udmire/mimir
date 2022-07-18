@@ -1,0 +1,67 @@
+POST {{schema}}{{endpoint}}{{prefix}}clusters
+Content-Type: application/json
+X-Scope-OrgID: 1
+
+{
+  "name": "mimir-1",
+  "display_name": "Mimir-1",
+  "kind": "mimir",
+  "base_url": "http://gateway.mimir-1.srv"
+}
+
+### List Clusters
+GET {{schema}}{{endpoint}}{{prefix}}clusters
+X-Scope-OrgID: 1
+
+
+### Get Cluster by Name
+GET {{schema}}{{endpoint}}{{prefix}}clusters/mimir
+X-Scope-OrgID: 1
+
+### List Tenants
+GET {{schema}}{{endpoint}}{{prefix}}tenants
+X-Scope-OrgID: 1
+
+### Get Tenant by Name
+GET {{schema}}{{endpoint}}{{prefix}}tenants/tenant
+X-Scope-OrgID: 1
+
+### Create Tenant
+POST {{schema}}{{endpoint}}{{prefix}}tenants
+Content-Type: application/json
+X-Scope-OrgID: 1
+
+{
+  "name": "tenant",
+  "display_name": "Tenant",
+  "cluster": "mimir"
+}
+
+### Update Tenant
+PUT {{schema}}{{endpoint}}{{prefix}}tenants/mimir-1
+X-Scope-OrgID: 1
+Content-Type: application/json
+
+{
+  "name": "tenant",
+  "status": "inactive"
+}
+
+### List Policies
+GET {{schema}}{{endpoint}}{{prefix}}accesspolicies
+X-Scope-OrgID: 1
+
+### Create Tenant
+POST {{schema}}{{endpoint}}{{prefix}}accesspolicies
+Content-Type: application/json
+X-Scope-OrgID: 1
+
+{
+  "name": "tenant",
+  "display_name": "Tenant",
+  "realms": [{
+    "tenant": "tenant",
+    "cluster": "mimir"
+  }],
+  "scopes": ["admin", "metric:read"]
+}

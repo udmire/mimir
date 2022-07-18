@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/mimir/pkg/storage/bucket"
 	"github.com/pkg/errors"
 	"github.com/thanos-io/thanos/pkg/objstore"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 )
 
@@ -76,7 +77,7 @@ func (b *BucketApiStore) ListClusters(ctx context.Context) (*store.Clusters, err
 			Kind: kind,
 		})
 		return nil
-	})
+	}, objstore.WithRecursiveIter)
 	if err != nil {
 		return nil, fmt.Errorf("unable to list clusters in admin store bucket: %w", err)
 	}
@@ -144,14 +145,15 @@ func (b *BucketApiStore) DeleteCluster(ctx context.Context, name, kind string) (
 }
 
 func (b *BucketApiStore) ListTenants(ctx context.Context, includeNonActive bool) (*store.Tenants, error) {
-	tenants := &store.Tenants{
-		Type:  "tenant",
-		Items: []*store.Tenant{},
-	}
-
-	err := b.tenantsBucket.Iter(ctx, "", func(tenant string) error {
-		tenants.Items = append(tenants.Items, &store.Tenant{
-			Name: tenant,
+	var groups []*store.Tenant
+	err := b.tenantsBucket.Iter(ctx, "", func(objKey string) error {
+		sections := fromComposedObjectKey(objKey)
+		if len(sections) != 1 {
+			level.Warn(b.logger).Log("msg", "invalid tenant object key found while listing tenants", "key", objKey)
+			return nil
+		}
+		groups = append(groups, &store.Tenant{
+			Name: sections[0],
 		})
 		return nil
 	})
@@ -159,8 +161,89 @@ func (b *BucketApiStore) ListTenants(ctx context.Context, includeNonActive bool)
 		return nil, fmt.Errorf("unable to list tenents in admin store bucket: %w", err)
 	}
 
-	// TODO: Load Content
+	err = b.loadTenants(ctx, groups)
+	if err != nil {
+		return nil, err
+	}
+
+	tenants := &store.Tenants{
+		Type:  "tenant",
+		Items: []*store.Tenant{},
+	}
+
+	for _, group := range groups {
+		if includeNonActive || group.Status == store.ACTIVE {
+			tenants.Items = append(tenants.Items, group)
+		}
+	}
+
 	return tenants, nil
+}
+
+// loadTenants
+func (b *BucketApiStore) loadTenants(ctx context.Context, groupsToLoad []*store.Tenant) error {
+	ch := make(chan *store.Tenant)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	for i := 0; i < loadConcurrency; i++ {
+		g.Go(func() error {
+			for t := range ch {
+				if t.Name == "" {
+					return fmt.Errorf("invalid tenant: name=%q", t.Name)
+				}
+
+				err := b.loadTenant(gCtx, t)
+				if err != nil {
+					return errors.Wrapf(err, "get tenant name=%q", t.Name)
+				}
+			}
+
+			return nil
+		})
+	}
+
+outer:
+	for _, gs := range groupsToLoad {
+		if gs == nil {
+			continue
+		}
+		select {
+		case <-gCtx.Done():
+			break outer
+		case ch <- gs:
+			// ok
+		}
+	}
+	close(ch)
+
+	return g.Wait()
+}
+
+func (b *BucketApiStore) loadTenant(ctx context.Context, tenant *store.Tenant) error {
+	objectKey := getComposedObjectKey(tenant.Name)
+
+	reader, err := b.tenantsBucket.Get(ctx, objectKey)
+	if b.tenantsBucket.IsObjNotFoundErr(err) {
+		level.Debug(b.logger).Log("msg", "tenant does not exist", "key", objectKey)
+		return store.ErrTenantNotFound
+	}
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to get tenant %s", tenant.Name)
+	}
+	defer func() { _ = reader.Close() }()
+
+	buf, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read tenant %s", tenant.Name)
+	}
+
+	err = yaml.Unmarshal(buf, tenant)
+	if err != nil {
+		return errors.Wrapf(err, "failed to unmarshal tenant %s", tenant.Name)
+	}
+
+	return nil
 }
 
 func (b *BucketApiStore) CreateTenant(ctx context.Context, tenant *store.Tenant) error {
@@ -212,52 +295,119 @@ func (b *BucketApiStore) UpdateTenant(ctx context.Context, name string, tenant *
 }
 
 func (b *BucketApiStore) GetTenant(ctx context.Context, name string) (*store.Tenant, error) {
-	tenant := &store.Tenant{}
-	objectKey := getComposedObjectKey(name)
-
-	reader, err := b.tenantsBucket.Get(ctx, objectKey)
-	if b.tenantsBucket.IsObjNotFoundErr(err) {
-		level.Debug(b.logger).Log("msg", "tenant does not exist", "key", objectKey)
-		return nil, store.ErrTenantNotFound
+	tenant := &store.Tenant{
+		Name: name,
 	}
 
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get tenant %s", name)
-	}
-	defer func() { _ = reader.Close() }()
+	err := b.loadTenant(ctx, tenant)
 
-	buf, err := ioutil.ReadAll(reader)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read tenant %s", name)
-	}
-
-	err = yaml.Unmarshal(buf, tenant)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal tenant %s", name)
+		return nil, err
 	}
 
 	return tenant, nil
 }
 
 func (b *BucketApiStore) ListAccessPolicies(ctx context.Context, includeNonActive bool) (*store.AccessPolicies, error) {
+	var groups []*store.AccessPolicy
+	err := b.policiesBucket.Iter(ctx, "", func(objKey string) error {
+		sections := fromComposedObjectKey(objKey)
+		if len(sections) != 1 {
+			level.Warn(b.logger).Log("msg", "invalid policy object key found while listing policies", "key", objKey)
+			return nil
+		}
+		groups = append(groups, &store.AccessPolicy{
+			Name: sections[0],
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to list tenents in admin store bucket: %w", err)
+	}
+
+	err = b.loadAccessPolicies(ctx, groups)
+	if err != nil {
+		return nil, err
+	}
+
 	policies := &store.AccessPolicies{
 		Type:  "policy",
 		Items: []*store.AccessPolicy{},
 	}
 
-	err := b.policiesBucket.Iter(ctx, "", func(policy string) error {
-		policies.Items = append(policies.Items, &store.AccessPolicy{
-			Name: policy,
-		})
-		return nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to list policies in admin store bucket: %w", err)
+	for _, group := range groups {
+		if includeNonActive || group.Status == store.ACTIVE {
+			policies.Items = append(policies.Items, group)
+		}
 	}
 
-	// TODO: Load Content & Filter
 	return policies, nil
+}
+
+// loadTenants
+func (b *BucketApiStore) loadAccessPolicies(ctx context.Context, groupsToLoad []*store.AccessPolicy) error {
+	ch := make(chan *store.AccessPolicy)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	for i := 0; i < loadConcurrency; i++ {
+		g.Go(func() error {
+			for t := range ch {
+				if t.Name == "" {
+					return fmt.Errorf("invalid tenant: name=%q", t.Name)
+				}
+
+				err := b.loadAccessPolicy(gCtx, t)
+				if err != nil {
+					return errors.Wrapf(err, "get tenant name=%q", t.Name)
+				}
+			}
+
+			return nil
+		})
+	}
+
+outer:
+	for _, gs := range groupsToLoad {
+		if gs == nil {
+			continue
+		}
+		select {
+		case <-gCtx.Done():
+			break outer
+		case ch <- gs:
+			// ok
+		}
+	}
+	close(ch)
+
+	return g.Wait()
+}
+
+func (b *BucketApiStore) loadAccessPolicy(ctx context.Context, policy *store.AccessPolicy) error {
+	objectKey := getComposedObjectKey(policy.Name)
+
+	reader, err := b.policiesBucket.Get(ctx, objectKey)
+	if b.policiesBucket.IsObjNotFoundErr(err) {
+		level.Debug(b.logger).Log("msg", "policy does not exist", "key", objectKey)
+		return store.ErrTenantNotFound
+	}
+
+	if err != nil {
+		return errors.Wrapf(err, "failed to get policy %s", policy.Name)
+	}
+	defer func() { _ = reader.Close() }()
+
+	buf, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return errors.Wrapf(err, "failed to read policy %s", policy.Name)
+	}
+
+	err = yaml.Unmarshal(buf, policy)
+	if err != nil {
+		return errors.Wrapf(err, "failed to unmarshal tenant %s", policy.Name)
+	}
+
+	return nil
 }
 
 func (b *BucketApiStore) CreateAccessPolicy(ctx context.Context, policy *store.AccessPolicy) error {
@@ -448,11 +598,21 @@ func getComposedObjectKey(sections ...string) string {
 	for _, section := range sections {
 		if !isFirst {
 			builder.WriteString(objstore.DirDelim)
-			isFirst = false
 		}
 		builder.WriteString(base64.URLEncoding.EncodeToString([]byte(section)))
+		isFirst = false
 	}
 	return builder.String()
+}
+
+func fromComposedObjectKey(key string) []string {
+	split := strings.Split(key, objstore.DirDelim)
+	var result []string
+	for _, str := range split {
+		decodeString, _ := base64.URLEncoding.DecodeString(str)
+		result = append(result, string(decodeString))
+	}
+	return result
 }
 
 // parseRuleGroupObjectKey parses a bucket object key in the format "<namespace>/<rules group>".

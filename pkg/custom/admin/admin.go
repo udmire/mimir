@@ -79,12 +79,23 @@ func NewAPI(cfg ApiConfig, client *Client, signer token.TokenSigner, log log.Log
 }
 
 func (a *API) starting(ctx context.Context) (err error) {
-	err = a.createBuiltinAdminPolicies()
-	if err != nil {
-		return
+	if err = services.StartManagerAndAwaitHealthy(ctx, a.subservices); err != nil {
+		return errors.Wrap(err, "unable to start admin-api subservices")
 	}
 
-	return services.StartManagerAndAwaitHealthy(ctx, a.subservices)
+	if a.lifecycler != nil && a.ring != nil {
+		level.Info(a.logger).Log("msg", "waiting until api is ACTIVE in the ring")
+		if err = ring.WaitInstanceState(ctx, a.ring, a.lifecycler.GetInstanceID(), ring.ACTIVE); err != nil {
+			return err
+		}
+	}
+
+	err = a.createBuiltinAdminPolicies()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *API) run(ctx context.Context) error {
