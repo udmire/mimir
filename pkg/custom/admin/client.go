@@ -98,6 +98,14 @@ func (c *Client) GetCluster(ctx context.Context, name, kind string) (*store.Clus
 	return c.store.GetCluster(ctx, name, kind)
 }
 
+func (c *Client) CreateCluster(ctx context.Context, cluster *store.Cluster) error {
+	return c.store.CreateCluster(ctx, cluster)
+}
+
+func (c *Client) DeleteCluster(ctx context.Context, name, kind string) (*store.Cluster, error) {
+	return c.store.DeleteCluster(ctx, name, kind)
+}
+
 func (c *Client) ListTenants(ctx context.Context, includeNonActive bool) (*store.Tenants, error) {
 	return c.store.ListTenants(ctx, includeNonActive)
 }
@@ -142,6 +150,6 @@ func (c *Client) GetToken(ctx context.Context, name string) (*store.Token, error
 	return c.store.GetToken(ctx, name)
 }
 
-func (c *Client) DeleteToken(ctx context.Context, name string, token *store.Token) (*store.Token, error) {
+func (c *Client) UpdateToken(ctx context.Context, name string, token *store.Token) (*store.Token, error) {
 	return c.store.UpdateToken(ctx, name, token)
 }

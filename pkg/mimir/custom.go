@@ -78,7 +78,7 @@ func (t *Mimir) initAdminAPI() (services.Service, error) {
 
 	t.AdminApi = aa
 	t.AdminApi.RegisterAPI(t.API)
-	return nil, nil
+	return t.AdminApi, nil
 }
 
 func (t *Mimir) initAdminClient() (serv services.Service, err error) {

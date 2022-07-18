@@ -57,6 +57,28 @@ func (a *API) GetCluster(w http.ResponseWriter, req *http.Request) {
 	util.WriteJSONResponse(w, c)
 }
 
+func (a *API) CreateCluster(w http.ResponseWriter, req *http.Request) {
+	logger := util_log.WithContext(req.Context(), a.logger)
+	level.Debug(logger).Log("msg", "retrieving clusters")
+
+	var cluster store.Cluster
+	err := ParseContent(req, &cluster)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	level.Debug(logger).Log("msg", "create cluster with name", cluster.Name)
+	err = a.client.CreateCluster(req.Context(), &cluster)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	util.WriteJSONResponse(w, cluster)
+}
+
 func (a *API) ListTenants(w http.ResponseWriter, req *http.Request) {
 	logger := util_log.WithContext(req.Context(), a.logger)
 
@@ -336,7 +358,7 @@ func (a *API) DeleteToken(w http.ResponseWriter, req *http.Request) {
 	}
 
 	level.Debug(logger).Log("msg", "delete policy with name", "name", name, "content", token)
-	token, err = a.client.DeleteToken(req.Context(), name, token)
+	token, err = a.client.UpdateToken(req.Context(), name, token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
