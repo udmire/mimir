@@ -460,28 +460,13 @@ func (b *BucketApiStore) UpdateAccessPolicy(ctx context.Context, name string, po
 }
 
 func (b *BucketApiStore) GetAccessPolicy(ctx context.Context, name string) (*store.AccessPolicy, error) {
-	policy := &store.AccessPolicy{}
-
-	objKey := getComposedObjectKey(name)
-	reader, err := b.policiesBucket.Get(ctx, name)
-	if b.tenantsBucket.IsObjNotFoundErr(err) {
-		level.Debug(b.logger).Log("msg", "policy does not exist", "key", objKey)
-		return nil, store.ErrPolicyNotFound
+	policy := &store.AccessPolicy{
+		Name: name,
 	}
 
+	err := b.loadAccessPolicy(ctx, policy)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get policy %s", name)
-	}
-	defer func() { _ = reader.Close() }()
-
-	buf, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to read policy %s", name)
-	}
-
-	err = yaml.Unmarshal(buf, policy)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal policy %s", objKey)
+		return nil, err
 	}
 
 	return policy, nil
