@@ -5,12 +5,12 @@ import (
 	"net/url"
 
 	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
 )
 
 type Proxy interface {
-	HandlerFunc() http.HandlerFunc
-	RegisterRoute(*mux.Router)
+	Handler() http.Handler
+	Path() string
+	// RegisterRoute(*mux.Router)
 }
 
 func NewProxy(logger log.Logger, cfg *ComponentProxyConfig) (ReverseProxy, error) {

@@ -29,8 +29,7 @@ type AuthServer struct {
 
 	defaultToken string
 
-	matchers *publicRouteMatchers
-
+	authChain PrincipalChain
 	verifier  token.TokenVerifier
 	loader    token.AuthContextLoader
 	evaluator access.Evaluator
@@ -69,8 +68,6 @@ func NewAuthServer(cfg Config, eval access.Evaluator, client *admin.Client, logg
 	if err != nil {
 		level.Warn(logger).Log("msg", err.Error())
 	}
-
-	auth.matchers = NewPublicRouteMatchers(auth.GetPublicRoutes())
 
 	return auth, nil
 }
@@ -121,4 +118,20 @@ func (s *AuthServer) initOverrideToken() error {
 		s.defaultToken = string(content)
 	}
 	return nil
+}
+
+func (s *AuthServer) initAuthChain() {
+	basicAuth := BasicAuthPrincipalReader(s.logger, s.verifier)
+	chain := PrincipalChain{basicAuth}
+
+	if s.OidcEnabled() {
+		bearerTokenAuth := BearerTokenPrincipalReader(s.logger, s.verifier)
+		chain = append(chain, bearerTokenAuth)
+	}
+
+	if s.HeaderEnabled() {
+		headerAuth := HeaderPrincipalReader(s.cfg.Admin.Header.HeaderName, s.cfg.Admin.Header.DefaultTenants...)
+		chain = append(chain, headerAuth)
+	}
+	s.authChain = chain
 }

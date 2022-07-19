@@ -2,10 +2,9 @@ package gateway
 
 import (
 	"flag"
-	"net/http"
 
 	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
+	"github.com/grafana/mimir/pkg/api"
 	"github.com/grafana/mimir/pkg/custom/admin"
 	"github.com/grafana/mimir/pkg/custom/gateway/auth"
 	"github.com/grafana/mimir/pkg/custom/gateway/auth/access"
@@ -72,12 +71,10 @@ func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prome
 	}, nil
 }
 
-func (g *Gateway) Register(router *mux.Router) {
-	router.Use(func(handler http.Handler) http.Handler {
-		return auth.WithAuthentication(handler, g.authServer)
-	})
+func (g *Gateway) RegisterAPI(a *api.API) {
+	a.AuthMiddleware = g.authServer
 
 	for _, proxy := range g.proxies {
-		proxy.RegisterRoute(router)
+		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, "GET")
 	}
 }

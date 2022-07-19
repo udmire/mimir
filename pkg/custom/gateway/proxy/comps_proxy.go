@@ -8,6 +8,10 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils/routes"
 )
 
+const (
+	ComponentRoute = "/{path:.+}"
+)
+
 type ComponentConfigFactory interface {
 	GetComponentConfig(req *http.Request) *ComponentProxyConfig
 }
@@ -66,17 +70,21 @@ func NewComponentsProxy(cfg Config, registry routes.Registry, logger log.Logger)
 	}, nil
 }
 
-func (c *compsProxy) HandlerFunc() http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
+func (c *compsProxy) RegisterRoute(router *mux.Router) {
+	router.Handle(c.Path(), c.Handler())
+}
+
+func (c *compsProxy) Handler() http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		config := c.GetComponentConfig(req)
 		proxy, err := NewProxy(c.logger, config)
 		if err != nil {
 			return
 		}
 		proxy.Proxy(c.logger, rw, req)
-	}
+	})
 }
 
-func (c *compsProxy) RegisterRoute(router *mux.Router) {
-	router.NewRoute().HandlerFunc(c.HandlerFunc())
+func (c *compsProxy) Path() string {
+	return ComponentRoute
 }
