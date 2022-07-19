@@ -18,6 +18,11 @@ func WithAuthentication(next http.Handler, srv *AuthServer) http.Handler {
 		chain = append(chain, bearerTokenAuth)
 	}
 
+	if srv.HeaderEnabled() {
+		headerAuth := HeaderPrincipalReader(srv.cfg.Admin.Header.HeaderName, srv.cfg.Admin.Header.DefaultTenants...)
+		chain = append(chain, headerAuth)
+	}
+
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if srv.matchers.Match(r) {
 			next.ServeHTTP(rw, r)
@@ -29,23 +34,24 @@ func WithAuthentication(next http.Handler, srv *AuthServer) http.Handler {
 			level.Error(srv.logger).Log("msg", "failed to get principal")
 		}
 
-		if principal == nil || err != nil {
+		if principal == nil {
 			utils.JSONError(srv.logger, rw, "Authentication required", http.StatusUnauthorized)
 			return
 		}
 
-		err = principal.Verify(srv.verifier)
-		if err != nil {
-			utils.JSONError(srv.logger, rw, "Invalid Authentication", http.StatusUnauthorized)
-			return
+		if !principal.IsAuthenticated() {
+			err = principal.Verify(srv.verifier)
+			if err != nil {
+				utils.JSONError(srv.logger, rw, "Invalid Authentication", http.StatusUnauthorized)
+				return
+			}
+			err = principal.LoadContext(srv.loader)
+			if err != nil {
+				utils.JSONError(srv.logger, rw, "Invalid Token Content", http.StatusUnauthorized)
+				return
+			}
+			principal.Authenticate()
 		}
-		err = principal.LoadContext(srv.loader)
-		if err != nil {
-			utils.JSONError(srv.logger, rw, "Invalid Token Content", http.StatusUnauthorized)
-			return
-		}
-
-		principal.Authenticate()
 
 		if !principal.IsAuthenticated() {
 			utils.JSONError(srv.logger, rw, "Authentication failed", http.StatusUnauthorized)

@@ -103,6 +103,10 @@ func (s *AuthServer) OidcEnabled() bool {
 	return s.cfg.Admin.OIDC.IssuerUrl != ""
 }
 
+func (s *AuthServer) HeaderEnabled() bool {
+	return s.cfg.Admin.Header.Enabled && len(s.cfg.Admin.Header.DefaultTenants) > 0
+}
+
 func (s *AuthServer) initOverrideToken() error {
 	if s.cfg.Override.Token != "" {
 		s.defaultToken = s.cfg.Override.TokenFile

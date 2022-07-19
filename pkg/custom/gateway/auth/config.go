@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/dskit/flagext"
 )
 
 type OverrideConfig struct {
@@ -19,8 +20,9 @@ func (c *OverrideConfig) RegisterFlags(f *flag.FlagSet) {
 
 type AdminConfig struct {
 	CacheTTL time.Duration `yaml:"cache_ttl" category:"advanced"`
-	OIDC     OidcConfig    `yaml:"oidc"`
+	OIDC     OidcConfig    `yaml:"oidc,omitempty"`
 	Hmac     HmacConfig    `yaml:"hmac,omitempty"`
+	Header   HeaderConfig  `yaml:"header,omitempty"`
 }
 
 func (c *AdminConfig) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
@@ -35,6 +37,20 @@ type HmacConfig struct {
 
 func (h *HmacConfig) RegisterFlags(f *flag.FlagSet) {
 	f.StringVar(&h.Secret, "auth.admin.hmac.secret", "", "Secret for hmac verifier and signer")
+}
+
+type HeaderConfig struct {
+	Enabled        bool                   `yaml:"enabled"`
+	HeaderName     string                 `yaml:"header_name,omitempty"`
+	DefaultTenants flagext.StringSliceCSV `yaml:"default_tenants"`
+}
+
+func (h *HeaderConfig) RegisterFlags(f *flag.FlagSet) {
+	f.BoolVar(&h.Enabled, "auth.admin.header.enabled", false, "Enable header authentication.")
+	f.StringVar(&h.HeaderName, "auth.admin.header.name", "X-Scope-OrgID", "Accepted header name for authentication")
+
+	h.DefaultTenants = []string{}
+	f.Var(&h.DefaultTenants, "auth.admin.header.tenants", "Comma-separated list of headers if no header found in the request. ")
 }
 
 // Config for auth guardian usage.

@@ -8,16 +8,6 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils/access"
 )
 
-// Principal is a simple model for the user, including their ID and Groups.
-
-// type APrincipal struct {
-// 	CustomClaims
-//
-// 	TenantIDs []string `json:"ids"`
-// 	JWT       string   `json:"jwt"`
-// 	Validated bool     `json:"validated"`
-// }
-
 type IPrincipal interface {
 	access.ScopeMatcher
 
@@ -48,6 +38,14 @@ func NewPrincipal(jwt string, tenants ...string) IPrincipal {
 	return &principal{
 		jwt:       jwt,
 		tenantIds: tenants,
+	}
+}
+
+func NewAuthorizedPrincipal(tenants ...string) IPrincipal {
+	return &principal{
+		tenantIds:     tenants,
+		authenticated: true,
+		context:       NewAuthContext(&trustAllPolicy{}),
 	}
 }
 

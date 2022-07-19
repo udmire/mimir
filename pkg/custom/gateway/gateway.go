@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"flag"
+	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -72,9 +73,9 @@ func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prome
 }
 
 func (g *Gateway) Register(router *mux.Router) {
-	// router.Use(func(handler http.Handler) http.Handler {
-	// 	return auth.WithAuthentication(handler, g.authServer)
-	// })
+	router.Use(func(handler http.Handler) http.Handler {
+		return auth.WithAuthentication(handler, g.authServer)
+	})
 
 	for _, proxy := range g.proxies {
 		proxy.RegisterRoute(router)

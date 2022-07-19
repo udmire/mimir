@@ -84,5 +84,4 @@ func Init(registry routes.Registry) {
 	registry.Register(Purger, "/purger/*", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 	registry.RegisterStrict(Purger, "/purger/*", []string{http.MethodPost}, []string{access.ADMIN, access.METRICS_DELETE})
 
-	// registry.RegisterAll(Default, "/**")
 }

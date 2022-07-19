@@ -15,6 +15,16 @@ type Policy interface {
 	GetTenants() []string
 }
 
+type trustAllPolicy struct{}
+
+func (t *trustAllPolicy) HasScope(scope string) bool {
+	return true
+}
+
+func (t *trustAllPolicy) GetTenants() []string {
+	return []string{}
+}
+
 type AuthContext interface {
 	GetPolicy() Policy
 }
