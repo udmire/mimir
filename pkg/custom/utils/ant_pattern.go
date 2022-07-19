@@ -9,6 +9,7 @@ import (
 const (
 	INITIAL = iota
 	STAR_SEEN
+	PARANTHESES_SEEN
 )
 
 type AntPattern struct {
@@ -57,6 +58,8 @@ func convertToRegex(antPatternStr string) (string, int, error) {
 		case INITIAL:
 			if chr == '*' {
 				state = STAR_SEEN
+			} else if chr == '{' {
+				state = PARANTHESES_SEEN
 			} else if chr == '.' {
 				buf.WriteString("\\.")
 				dotSpecifity = 1
@@ -81,6 +84,11 @@ func convertToRegex(antPatternStr string) (string, int, error) {
 				buf.WriteString("[^/]*")
 				buf.WriteRune(chr)
 				state = INITIAL
+			}
+		case PARANTHESES_SEEN:
+			if chr == '}' {
+				state = INITIAL
+				buf.WriteString("[^/]*")
 			}
 		default:
 			return "", -1, fmt.Errorf("invalid state")
