@@ -68,6 +68,7 @@ func NewAuthServer(cfg Config, eval access.Evaluator, client *admin.Client, logg
 	if err != nil {
 		level.Warn(logger).Log("msg", err.Error())
 	}
+	auth.initAuthChain()
 
 	return auth, nil
 }

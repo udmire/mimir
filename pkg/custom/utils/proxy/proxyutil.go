@@ -46,5 +46,5 @@ func ClearCookieHeader(req *http.Request, keepCookiesNames []string) {
 // SetProxyResponseHeaders sets proxy response headers.
 // Sets Content-Security-Policy: sandbox
 func SetProxyResponseHeaders(header http.Header) {
-	header.Set("Content-Security-Policy", "sandbox")
+	// header.Set("Content-Security-Policy", "sandbox")
 }

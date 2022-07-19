@@ -9,5 +9,5 @@ type ReverseProxyFactory interface {
 }
 
 func HasComponent(cc ComponentProxyConfig) bool {
-	return cc.Url == ""
+	return cc.Url != ""
 }

@@ -23,6 +23,10 @@ func Test_MustCompiles(t *testing.T) {
 			pattern:  "/{param}/**",
 			expected: "^/[^/]*/.*$",
 		},
+		"4": {
+			pattern:  "/*/*",
+			expected: "^/[^/]*/[^/]*$",
+		},
 	}
 
 	for testName, testData := range tests {
