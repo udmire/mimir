@@ -37,9 +37,10 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Instance, "/config", access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/runtime_config", access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/services", access.ADMIN, access.ADMIN_READ)
+	registry.RegisterAll(Instance, "/memberlist", access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/ready", access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/metrics", access.ADMIN, access.ADMIN_READ)
-	registry.RegisterAll(Instance, "/debug/*", access.ADMIN, access.ADMIN_READ)
+	registry.RegisterAll(Instance, "/debug/**", access.ADMIN, access.ADMIN_READ)
 
 	registry.Register(Distributor, "/api/v1/push", []string{http.MethodPost}, []string{access.METRICS_WRITE})
 	registry.Register(Distributor, "/api/prom/push", []string{http.MethodPost}, []string{access.METRICS_WRITE})
@@ -47,7 +48,7 @@ func Init(registry routes.Registry) {
 
 	registry.RegisterAll(Ingester, "/ingester/flush", access.ADMIN)
 	registry.RegisterAll(Ingester, "/ingester/shutdown", access.ADMIN)
-	registry.Register(Ingester, "/ingester/ring", []string{http.MethodGet}, []string{access.ADMIN, access.ADMIN_READ})
+	registry.Register(Ingester, "/ingester/ring", []string{http.MethodGet, http.MethodPost}, []string{access.ADMIN, access.ADMIN_READ})
 
 	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query", access.METRICS_READ)
 	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query_range", access.METRICS_READ)

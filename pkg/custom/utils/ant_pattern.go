@@ -94,6 +94,11 @@ func convertToRegex(antPatternStr string) (string, int, error) {
 			return "", -1, fmt.Errorf("invalid state")
 		}
 	}
+	if state == STAR_SEEN {
+		buf.WriteString("[^/]*")
+	} else if state == PARANTHESES_SEEN {
+		return "", specificity + dotSpecifity, fmt.Errorf("invalid pattern, must close with '}' when using {param}")
+	}
 
 	buf.WriteRune('$')
 
