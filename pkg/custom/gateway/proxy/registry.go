@@ -1,4 +1,4 @@
-package gateway
+package proxy
 
 import (
 	"net/http"
@@ -18,8 +18,8 @@ const (
 	Compactor     = "compactor"
 	AlertManager  = "alert-manager"
 	Purger        = "purger"
-	Default       = "default"
-	Instance      = "instance"
+
+	Default = "default"
 )
 
 func NewRegistry() routes.Registry {

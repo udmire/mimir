@@ -27,12 +27,4 @@ func NewProxy(logger log.Logger, cfg *ComponentProxyConfig) (ReverseProxy, error
 
 func NewDynamicProxy(logger log.Logger, target TargetFunc, path PathFunc) (ReverseProxy, error) {
 	return NewHttpReverseProxy(logger, target, path), nil
-	// return NewHttpReverseProxy(modifier, func(req *http.Request) (*httputil.ReverseProxy, error) {
-	// 	t := target(req)
-	// 	remote, err := url.Parse(t)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return httputil.NewSingleHostReverseProxy(remote), nil
-	// }), nil
 }

@@ -25,7 +25,7 @@ type Gateway struct {
 	cfg *Config
 
 	authServer *auth.AuthServer
-	factory    proxy.ReverseProxyFactory
+	proxies    []proxy.Proxy
 
 	registry prometheus.Registerer
 	logger   log.Logger
@@ -33,20 +33,29 @@ type Gateway struct {
 
 // NewGateway creates a new gateway server.
 func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prometheus.Registerer, logger log.Logger) (*Gateway, error) {
-	registry := NewRegistry()
-	Init(registry)
+	registry := proxy.NewRegistry()
+	proxy.Init(registry)
 
-	factory, err := proxy.NewReverseProxyFactory(cfg.Proxy, registry, logger)
-	if err != nil {
-		return nil, err
-	}
+	var proxies []proxy.Proxy
 
 	var eval access.Evaluator
 	if cfg.Proxy.InstanceConfig.Enabled {
 		eval = access.NewPrefixedPermissionEvaluator(proxy.DynamicInstancePrefix, logger, registry)
+
+		instanceProxy, err := proxy.NewInstanceProxy(&cfg.Proxy.InstanceConfig, logger)
+		if err != nil {
+			return nil, err
+		}
+		proxies = append(proxies, instanceProxy)
 	} else {
 		eval = access.NewPermissionEvaluator(logger, registry)
 	}
+
+	componentsProxy, err := proxy.NewComponentsProxy(cfg.Proxy, registry, logger)
+	if err != nil {
+		return nil, err
+	}
+	proxies = append(proxies, componentsProxy)
 
 	authServer, err := auth.NewAuthServer(authCfg, eval, client, logger)
 	if err != nil {
@@ -56,7 +65,7 @@ func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prome
 	return &Gateway{
 		cfg:        &cfg,
 		authServer: authServer,
-		factory:    factory,
+		proxies:    proxies,
 		registry:   reg,
 		logger:     logger,
 	}, nil
@@ -67,5 +76,7 @@ func (g *Gateway) Register(router *mux.Router) {
 	// 	return auth.WithAuthentication(handler, g.authServer)
 	// })
 
-	g.factory.Register(router)
+	for _, proxy := range g.proxies {
+		proxy.RegisterRoute(router)
+	}
 }

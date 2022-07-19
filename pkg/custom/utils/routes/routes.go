@@ -53,10 +53,10 @@ func (i *internalRoute) Register(router *mux.Router, hf http.HandlerFunc) {
 func precessPattern(pattern string) string {
 	counter := 0
 	for {
-		if !strings.Contains(pattern, "/*/") {
+		if !strings.Contains(pattern, "/*") {
 			break
 		}
-		pattern = strings.Replace(pattern, "/*/", fmt.Sprintf("/{param%d}/", counter), 1)
+		pattern = strings.Replace(pattern, "/*", fmt.Sprintf("/{param%d}", counter), 1)
 		counter++
 	}
 	if strings.HasSuffix(pattern, "**") {

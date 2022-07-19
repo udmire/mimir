@@ -65,3 +65,13 @@ X-Scope-OrgID: 1
   }],
   "scopes": ["admin", "metric:read"]
 }
+
+### Get Policy by name
+GET {{schema}}{{endpoint}}{{prefix}}accesspolicies/tenant
+X-Scope-OrgID: 1
+
+### Get Dynamic
+GET {{schema}}{{endpoint}}/dynamic/www.baidu.com/
+
+### Get Dynamic
+GET {{schema}}{{endpoint}}/metrics
