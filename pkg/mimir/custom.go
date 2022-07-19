@@ -59,7 +59,7 @@ func (t *Mimir) initGateway() (serv services.Service, err error) {
 		return nil, err
 	}
 
-	t.Gateway.Register(t.Server.HTTP)
+	t.Gateway.RegisterAPI(t.API)
 
 	return nil, nil
 }

@@ -65,14 +65,18 @@ func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error
 	}, nil
 }
 
-func (c *instanceProxy) HandlerFunc() http.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request) {
+func (c *instanceProxy) Handler() http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		logger := log.With(c.logger, "instance", vars[Instance])
 		c.proxy.Proxy(logger, rw, req)
-	}
+	})
 }
 
 func (c *instanceProxy) RegisterRoute(router *mux.Router) {
-	router.HandleFunc(DynamicInstanceRoute, c.HandlerFunc())
+	router.Handle(DynamicInstanceRoute, c.Handler())
+}
+
+func (c *instanceProxy) Path() string {
+	return DynamicInstanceRoute
 }
