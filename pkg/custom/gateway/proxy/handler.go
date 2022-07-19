@@ -28,22 +28,8 @@ type reverseProxy struct {
 	Target         TargetFunc
 	RawPath        PathFunc
 	SendUserHeader bool
-	// modifier       requestModifier
-	logger log.Logger
-	// clientProvider httpclient.Provider
-	// ptc   proxyTransportCache
-	// proxy func(req *http.Request) (*httputil.ReverseProxy, error)
+	logger         log.Logger
 }
-
-// type proxyTransportCache struct {
-// 	cache map[int64]cachedRoundTripper
-// 	sync.Mutex
-// }
-//
-// type cachedRoundTripper struct {
-// 	updated      time.Time
-// 	roundTripper http.RoundTripper
-// }
 
 func (r *reverseProxy) Proxy(logger log.Logger, rw http.ResponseWriter, req *http.Request) {
 	// r.modifier(req)
@@ -131,6 +117,7 @@ func applyUserHeader(sendUserHeader bool, req *http.Request, user token.IPrincip
 	if sendUserHeader {
 		req.Header.Set("X-Scope-User", user.GetClaims().Name)
 	}
+	user.WrapRequest(req)
 }
 
 func NewHttpReverseProxy(logger log.Logger, targetFunc func(req *http.Request) *url.URL, rawPathFunc func(req *http.Request) string) ReverseProxy {
@@ -140,8 +127,6 @@ func NewHttpReverseProxy(logger log.Logger, targetFunc func(req *http.Request) *
 		ProxyLogging:   false,
 		Target:         targetFunc,
 		RawPath:        rawPathFunc,
-		// proxy: proxy,
-		// modifier: modifier,
 	}
 }
 
@@ -149,51 +134,3 @@ type ReverseProxyWrapper interface {
 	Get() ReverseProxy
 	Matches(path string) bool
 }
-
-// type httpReverseProxyWrapper struct {
-// 	proxy    ReverseProxy
-// 	matchers utils.Matcher
-// }
-
-// func (h *httpReverseProxyWrapper) Get() ReverseProxy {
-// 	return h.proxy
-// }
-//
-// func (h *httpReverseProxyWrapper) Matches(path string) bool {
-// 	return h.matchers.Matches(path)
-// }
-
-// func newReverseProxyWrapper(config *ComponentProxyConfig, route *routes.ComponentRoutes) (ReverseProxyWrapper, error) {
-// 	proxy, err := NewProxy(config)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &httpReverseProxyWrapper{
-// 		proxy:    proxy,
-// 		matchers: route.HttpRoutes,
-// 	}, nil
-// }
-
-// func WithProxy(next http.Handler, factory ReverseProxyFactory, logger log.Logger) http.Handler {
-// 	return http.HandlerFunc(func(rw http.ResponseWriter, request *http.Request) {
-// 		// TODO
-// 		requestLogger := log.With(logger, "request", request.Context().Value("trace"))
-// 		uri := request.RequestURI
-// 		proxy, err := factory.GetReverseProxy(uri)
-// 		if err != nil {
-// 			utils.JSONError(logger, rw, "Authentication required", http.StatusUnauthorized)
-// 			return
-// 		}
-//
-// 		if proxy == nil {
-// 			next.ServeHTTP(rw, request)
-// 			return
-// 		}
-//
-// 		principal := auth.GetPrincipal(request.Context())
-// 		if principal != nil {
-// 			principal.WrapRequest(request)
-// 		}
-// 		proxy.Proxy(requestLogger, rw, request)
-// 	})
-// }

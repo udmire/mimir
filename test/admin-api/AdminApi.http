@@ -75,3 +75,6 @@ GET {{schema}}{{endpoint}}/dynamic/www.baidu.com/
 
 ### Get Dynamic
 GET {{schema}}{{endpoint}}/metrics
+
+### Get Policy by name
+GET {{schema}}{{endpoint}}{{prefix}}accesspolicies/tenant
