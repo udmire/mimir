@@ -25,7 +25,7 @@ const (
 
 const (
 	DynamicInstanceRoutePrefix = "/dynamic/*"
-	DynamicInstanceRoute       = "/dynamic/(*)(**)"
+	// DynamicInstanceRoute       = "/dynamic/(*)(**)"
 )
 
 // AccessPermission defines permissions required for the given action
