@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils/proxy"
 	_ "github.com/grafana/mimir/pkg/custom/utils/routes"
 	"github.com/grafana/mimir/pkg/custom/utils/token"
+	"github.com/grafana/mimir/pkg/util/instrumentation"
 )
 
 type ReverseProxy interface {
@@ -60,15 +61,9 @@ func (r *reverseProxy) Proxy(logger log.Logger, rw http.ResponseWriter, req *htt
 		}
 		return nil
 	}
-	reverseProxy := proxy.NewReverseProxy(logger, r.director, proxy.WithModifyResponse(modifyResponse))
+	transport := instrumentation.TracerTransport{}
+	reverseProxy := proxy.NewReverseProxy(logger, r.director, proxy.WithTransport(transport), proxy.WithModifyResponse(modifyResponse))
 	r.logRequest(req)
-	// ctx, span := r.tracer.Start(r.ctx.Req.Context(), "datasource reverse proxy")
-	// defer span.End()
-	//
-	// r.ctx.Req = req.WithContext(ctx)
-	// span.SetAttributes("org_id", proxy.ctx.SignedInUser.OrgId, attribute.Key("org_id").Int64(proxy.ctx.SignedInUser.OrgId))
-
-	// r.tracer.Inject(ctx, r.ctx.Req.Header, span)
 
 	reverseProxy.ServeHTTP(rw, req)
 }

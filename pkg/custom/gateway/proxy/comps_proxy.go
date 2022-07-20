@@ -6,6 +6,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/mimir/pkg/custom/utils/routes"
+	util_log "github.com/grafana/mimir/pkg/util/log"
 )
 
 const (
@@ -76,12 +77,13 @@ func (c *compsProxy) RegisterRoute(router *mux.Router) {
 
 func (c *compsProxy) Handler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		logger := util_log.WithContext(req.Context(), c.logger)
 		config := c.GetComponentConfig(req)
-		proxy, err := NewProxy(c.logger, config)
+		proxy, err := NewProxy(logger, config)
 		if err != nil {
 			return
 		}
-		proxy.Proxy(c.logger, rw, req)
+		proxy.Proxy(logger, rw, req)
 	})
 }
 

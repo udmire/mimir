@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"flag"
+	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/mimir/pkg/api"
@@ -75,6 +76,8 @@ func (g *Gateway) RegisterAPI(a *api.API) {
 	a.AuthMiddleware = g.authServer
 
 	for _, proxy := range g.proxies {
-		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, "GET")
+		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, http.MethodGet, http.MethodConnect,
+			http.MethodDelete, http.MethodHead, http.MethodOptions, http.MethodPatch, http.MethodPost, http.MethodPut,
+			http.MethodTrace)
 	}
 }
