@@ -42,7 +42,7 @@ type internalRoutePermissions struct {
 }
 
 func (i *internalRoutePermissions) Matches(req *http.Request) bool {
-	return i.pattern.Matches(req.RequestURI)
+	return i.route.Matches(req)
 }
 
 func (i *internalRoutePermissions) HasPermission(principal token.IPrincipal) bool {
