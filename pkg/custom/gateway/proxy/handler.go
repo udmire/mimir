@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils/proxy"
 	_ "github.com/grafana/mimir/pkg/custom/utils/routes"
 	"github.com/grafana/mimir/pkg/custom/utils/token"
-	"github.com/grafana/mimir/pkg/util/instrumentation"
+	"github.com/opentracing/opentracing-go"
 )
 
 type ReverseProxy interface {
@@ -33,7 +33,6 @@ type reverseProxy struct {
 }
 
 func (r *reverseProxy) Proxy(logger log.Logger, rw http.ResponseWriter, req *http.Request) {
-	// r.modifier(req)
 
 	// transport, err := r.GetHTTPTransport(req.Context(), r.clientProvider)
 	// if err != nil {
@@ -61,11 +60,14 @@ func (r *reverseProxy) Proxy(logger log.Logger, rw http.ResponseWriter, req *htt
 		}
 		return nil
 	}
-	transport := instrumentation.TracerTransport{}
-	reverseProxy := proxy.NewReverseProxy(logger, r.director, proxy.WithTransport(transport), proxy.WithModifyResponse(modifyResponse))
+
+	sp, ctx := opentracing.StartSpanFromContext(req.Context(), "Gateway.doProxy")
+	defer sp.Finish()
+
+	reverseProxy := proxy.NewReverseProxy(logger, r.director, proxy.WithModifyResponse(modifyResponse))
 	r.logRequest(req)
 
-	reverseProxy.ServeHTTP(rw, req)
+	reverseProxy.ServeHTTP(rw, req.Clone(ctx))
 }
 
 func (r *reverseProxy) director(req *http.Request) {
@@ -119,7 +121,7 @@ func NewHttpReverseProxy(logger log.Logger, targetFunc func(req *http.Request) *
 	return &reverseProxy{
 		logger:         logger,
 		SendUserHeader: false,
-		ProxyLogging:   false,
+		ProxyLogging:   true,
 		Target:         targetFunc,
 		RawPath:        rawPathFunc,
 	}
