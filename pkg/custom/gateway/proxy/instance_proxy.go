@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	util_log "github.com/grafana/mimir/pkg/util/log"
 )
 
 const (
@@ -68,7 +69,8 @@ func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error
 func (c *instanceProxy) Handler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
-		logger := log.With(c.logger, "instance", vars[Instance])
+		logger := util_log.WithContext(req.Context(), c.logger)
+		logger = log.With(logger, "instance", vars[Instance])
 		c.proxy.Proxy(logger, rw, req)
 	})
 }
