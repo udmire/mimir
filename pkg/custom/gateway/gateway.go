@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"flag"
-	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/mimir/pkg/api"
@@ -15,11 +14,13 @@ import (
 
 // Config xxx
 type Config struct {
-	Proxy proxy.Config `yaml:"proxy" category:"advanced"`
+	Proxy  proxy.Config       `yaml:"proxy" category:"advanced"`
+	Tenant proxy.TenantConfig `yaml:"tenant" category:"advanced"`
 }
 
 func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	c.Proxy.RegisterFlags(f, logger)
+	c.Tenant.RegisterFlags(f)
 }
 
 type Gateway struct {
@@ -52,6 +53,11 @@ func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prome
 		eval = access.NewPermissionEvaluator(logger, registry)
 	}
 
+	if cfg.Tenant.Enabled {
+		tenantsHandler := proxy.NewTenantsPushProxy(&cfg.Proxy.Distributor, &cfg.Tenant, logger)
+		proxies = append(proxies, tenantsHandler)
+	}
+
 	componentsProxy, err := proxy.NewComponentsProxy(cfg.Proxy, registry, logger)
 	if err != nil {
 		return nil, err
@@ -76,8 +82,7 @@ func (g *Gateway) RegisterAPI(a *api.API) {
 	a.AuthMiddleware = g.authServer
 
 	for _, proxy := range g.proxies {
-		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, http.MethodGet, http.MethodConnect,
-			http.MethodDelete, http.MethodHead, http.MethodOptions, http.MethodPatch, http.MethodPost, http.MethodPut,
-			http.MethodTrace)
+		method, additional := proxy.Methods()
+		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, method, additional...)
 	}
 }

@@ -92,3 +92,17 @@ func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	c.Ruler.RegisterFlagsWithPrefix(prefix+".ruler", f)
 	c.StoreGateway.RegisterFlagsWithPrefix(prefix+".store-gateway", f)
 }
+
+type TenantConfig struct {
+	Enabled        bool   `yaml:"enabled"`
+	MaxRecvMsgSize int    `yaml:"max_recv_msg_size"`
+	TenantLabel    string `yaml:"tenant_label"`
+	AcceptAll      bool   `yaml:"accept_all"`
+}
+
+func (t *TenantConfig) RegisterFlags(f *flag.FlagSet) {
+	f.BoolVar(&t.Enabled, "gateway.tenant.enabled", false, "Enable mark label as tenant")
+	f.IntVar(&t.MaxRecvMsgSize, "gateway.tenant.max-recv-msg-size", 100<<20, "Max message size.")
+	f.StringVar(&t.TenantLabel, "gateway.tenant.tenant-label", "__tenant__", "Tenant label name.")
+	f.BoolVar(&t.AcceptAll, "gateway.tenant.accept-all", false, "Accept all even some failed.")
+}

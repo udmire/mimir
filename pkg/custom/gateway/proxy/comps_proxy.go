@@ -90,3 +90,16 @@ func (c *compsProxy) Handler() http.Handler {
 func (c *compsProxy) Path() string {
 	return ComponentRoute
 }
+
+func (c *compsProxy) Methods() (string, []string) {
+	return http.MethodGet, []string{
+		http.MethodConnect,
+		http.MethodDelete,
+		http.MethodHead,
+		http.MethodOptions,
+		http.MethodPatch,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodTrace,
+	}
+}
