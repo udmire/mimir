@@ -25,6 +25,19 @@ type instanceProxy struct {
 	proxy  ReverseProxy
 }
 
+func (c *instanceProxy) Methods() (string, []string) {
+	return http.MethodGet, []string{
+		http.MethodConnect,
+		http.MethodDelete,
+		http.MethodHead,
+		http.MethodOptions,
+		http.MethodPatch,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodTrace,
+	}
+}
+
 func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error) {
 	path := func(req *http.Request) string {
 		vars := mux.Vars(req)

@@ -10,6 +10,7 @@ import (
 type Proxy interface {
 	Handler() http.Handler
 	Path() string
+	Methods() (string, []string)
 	// RegisterRoute(*mux.Router)
 }
 

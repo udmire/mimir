@@ -33,12 +33,6 @@ type reverseProxy struct {
 }
 
 func (r *reverseProxy) Proxy(logger log.Logger, rw http.ResponseWriter, req *http.Request) {
-
-	// transport, err := r.GetHTTPTransport(req.Context(), r.clientProvider)
-	// if err != nil {
-	// 	utils.JSONError(logger, rw, "Unable to load TLS certificate", http.StatusBadRequest)
-	// 	return
-	// }
 	modifyResponse := func(resp *http.Response) error {
 		if resp.StatusCode == 401 {
 			// The data source rejected the request as unauthorized, convert to 400 (bad request)
@@ -125,9 +119,4 @@ func NewHttpReverseProxy(logger log.Logger, targetFunc func(req *http.Request) *
 		Target:         targetFunc,
 		RawPath:        rawPathFunc,
 	}
-}
-
-type ReverseProxyWrapper interface {
-	Get() ReverseProxy
-	Matches(path string) bool
 }
