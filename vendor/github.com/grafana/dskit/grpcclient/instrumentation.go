@@ -6,16 +6,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/middleware"
 	"google.golang.org/grpc"
+
+	dsmiddleware "github.com/grafana/dskit/middleware"
 )
 
 func Instrument(requestDuration *prometheus.HistogramVec) ([]grpc.UnaryClientInterceptor, []grpc.StreamClientInterceptor) {
 	return []grpc.UnaryClientInterceptor{
 			otgrpc.OpenTracingClientInterceptor(opentracing.GlobalTracer()),
 			middleware.ClientUserHeaderInterceptor,
-			middleware.UnaryClientInstrumentInterceptor(requestDuration),
+			dsmiddleware.PrometheusGRPCUnaryInstrumentation(requestDuration),
 		}, []grpc.StreamClientInterceptor{
 			otgrpc.OpenTracingStreamClientInterceptor(opentracing.GlobalTracer()),
 			middleware.StreamClientUserHeaderInterceptor,
-			middleware.StreamClientInstrumentInterceptor(requestDuration),
+			dsmiddleware.PrometheusGRPCStreamInstrumentation(requestDuration),
 		}
 }
