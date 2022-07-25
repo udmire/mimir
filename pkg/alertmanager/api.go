@@ -422,6 +422,9 @@ func validateReceiverHTTPConfig(cfg commoncfg.HTTPClientConfig) error {
 	if cfg.BearerTokenFile != "" {
 		return errPasswordFileNotAllowed
 	}
+	if cfg.ProxyURL.URL != nil {
+		return errProxyURLNotAllowed
+	}
 	if cfg.OAuth2 != nil && cfg.OAuth2.ClientSecretFile != "" {
 		return errOAuth2SecretFileNotAllowed
 	}

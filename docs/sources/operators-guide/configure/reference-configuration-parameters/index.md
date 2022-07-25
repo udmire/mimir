@@ -1,9 +1,7 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/configuring/reference-configuration-parameters/
-description: Describes parameters used to configure Grafana Mimir.
-menuTitle: Configuration parameters
-title: Grafana Mimir configuration parameters
+title: "Grafana Mimir configuration parameters"
+menuTitle: "Configuration parameters"
+description: "Describes parameters used to configure Grafana Mimir."
 weight: 130
 ---
 
@@ -216,47 +214,6 @@ runtime_config:
 
 # The query_scheduler block configures the query-scheduler.
 [query_scheduler: <query_scheduler>]
-
-# The common block holds configurations that configure multiple components at a
-# time.
-[common: <common>]
-```
-
-### common
-
-The `common` block holds configurations that configure multiple components at a time.
-
-```yaml
-storage:
-  # Backend storage to use. Supported backends are: s3, gcs, azure, swift,
-  # filesystem.
-  # CLI flag: -common.storage.backend
-  [backend: <string> | default = "filesystem"]
-
-  # The s3_backend block configures the connection to Amazon S3 object storage
-  # backend.
-  # The CLI flags prefix for this block configuration is: common.storage
-  [s3: <s3_storage_backend>]
-
-  # The gcs_backend block configures the connection to Google Cloud Storage
-  # object storage backend.
-  # The CLI flags prefix for this block configuration is: common.storage
-  [gcs: <gcs_storage_backend>]
-
-  # The azure_storage_backend block configures the connection to Azure object
-  # storage backend.
-  # The CLI flags prefix for this block configuration is: common.storage
-  [azure: <azure_storage_backend>]
-
-  # The swift_storage_backend block configures the connection to OpenStack
-  # Object Storage (Swift) object storage backend.
-  # The CLI flags prefix for this block configuration is: common.storage
-  [swift: <swift_storage_backend>]
-
-  # The filesystem_storage_backend block configures the usage of local file
-  # system as object storage backend.
-  # The CLI flags prefix for this block configuration is: common.storage
-  [filesystem: <filesystem_storage_backend>]
 ```
 
 ### server
@@ -425,10 +382,6 @@ grpc_tls_config:
 # X-Real-IP and X-Forwarded-For headers are used
 # CLI flag: -server.log-source-ips-regex
 [log_source_ips_regex: <string> | default = ""]
-
-# (advanced) Optionally log requests at info level instead of debug level.
-# CLI flag: -server.log-request-at-info-level-enabled
-[log_request_at_info_level_enabled: <boolean> | default = false]
 
 # (advanced) Base path to serve all API routes from (e.g. /v1/)
 # CLI flag: -server.path-prefix
@@ -1345,6 +1298,10 @@ alertmanager_client:
 # CLI flag: -ruler.resend-delay
 [resend_delay: <duration> | default = 1m]
 
+# (advanced) Time to spend searching for a pending ruler when shutting down.
+# CLI flag: -ruler.search-pending-for
+[search_pending_for: <duration> | default = 5m]
+
 ring:
   kvstore:
     # Backend storage to use for the ring. Supported values are: consul, etcd,
@@ -1411,6 +1368,10 @@ ring:
   # (advanced) Number of tokens for each ruler.
   # CLI flag: -ruler.ring.num-tokens
   [num_tokens: <int> | default = 128]
+
+# (advanced) Period with which to attempt to flush rule groups.
+# CLI flag: -ruler.flush-period
+[flush_period: <duration> | default = 1m]
 
 # Enable the ruler config API.
 # CLI flag: -ruler.enable-api
@@ -1527,35 +1488,223 @@ The `ruler_storage` block configures the ruler storage backend.
 # CLI flag: -ruler-storage.backend
 [backend: <string> | default = "filesystem"]
 
-# The s3_backend block configures the connection to Amazon S3 object storage
-# backend.
-# The CLI flags prefix for this block configuration is: ruler-storage
-[s3: <s3_storage_backend>]
-
-# The gcs_backend block configures the connection to Google Cloud Storage object
-# storage backend.
-# The CLI flags prefix for this block configuration is: ruler-storage
-[gcs: <gcs_storage_backend>]
-
-# The azure_storage_backend block configures the connection to Azure object
-# storage backend.
-# The CLI flags prefix for this block configuration is: ruler-storage
-[azure: <azure_storage_backend>]
-
-# The swift_storage_backend block configures the connection to OpenStack Object
-# Storage (Swift) object storage backend.
-# The CLI flags prefix for this block configuration is: ruler-storage
-[swift: <swift_storage_backend>]
-
-# The filesystem_storage_backend block configures the usage of local file system
-# as object storage backend.
-# The CLI flags prefix for this block configuration is: ruler-storage
-[filesystem: <filesystem_storage_backend>]
-
 # (experimental) Prefix for all objects stored in the backend storage. For
 # simplicity, it may only contain digits and English alphabet letters.
 # CLI flag: -ruler-storage.storage-prefix
 [storage_prefix: <string> | default = ""]
+
+s3:
+  # The S3 bucket endpoint. It could be an AWS S3 endpoint listed at
+  # https://docs.aws.amazon.com/general/latest/gr/s3.html or the address of an
+  # S3-compatible service in hostname:port format.
+  # CLI flag: -ruler-storage.s3.endpoint
+  [endpoint: <string> | default = ""]
+
+  # S3 region. If unset, the client will issue a S3 GetBucketLocation API call
+  # to autodetect it.
+  # CLI flag: -ruler-storage.s3.region
+  [region: <string> | default = ""]
+
+  # S3 bucket name
+  # CLI flag: -ruler-storage.s3.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # S3 secret access key
+  # CLI flag: -ruler-storage.s3.secret-access-key
+  [secret_access_key: <string> | default = ""]
+
+  # S3 access key ID
+  # CLI flag: -ruler-storage.s3.access-key-id
+  [access_key_id: <string> | default = ""]
+
+  # (advanced) If enabled, use http:// for the S3 endpoint instead of https://.
+  # This could be useful in local dev/test environments while using an
+  # S3-compatible backend storage, like Minio.
+  # CLI flag: -ruler-storage.s3.insecure
+  [insecure: <boolean> | default = false]
+
+  # (advanced) The signature version to use for authenticating against S3.
+  # Supported values are: v4, v2.
+  # CLI flag: -ruler-storage.s3.signature-version
+  [signature_version: <string> | default = "v4"]
+
+  # The sse block configures the S3 server-side encryption.
+  # The CLI flags prefix for this block configuration is: ruler-storage
+  [sse: <sse>]
+
+  http:
+    # (advanced) The time an idle connection will remain idle before closing.
+    # CLI flag: -ruler-storage.s3.http.idle-conn-timeout
+    [idle_conn_timeout: <duration> | default = 1m30s]
+
+    # (advanced) The amount of time the client will wait for a servers response
+    # headers.
+    # CLI flag: -ruler-storage.s3.http.response-header-timeout
+    [response_header_timeout: <duration> | default = 2m]
+
+    # (advanced) If the client connects to S3 via HTTPS and this option is
+    # enabled, the client will accept any certificate and hostname.
+    # CLI flag: -ruler-storage.s3.http.insecure-skip-verify
+    [insecure_skip_verify: <boolean> | default = false]
+
+    # (advanced) Maximum time to wait for a TLS handshake. 0 means no limit.
+    # CLI flag: -ruler-storage.s3.tls-handshake-timeout
+    [tls_handshake_timeout: <duration> | default = 10s]
+
+    # (advanced) The time to wait for a server's first response headers after
+    # fully writing the request headers if the request has an Expect header. 0
+    # to send the request body immediately.
+    # CLI flag: -ruler-storage.s3.expect-continue-timeout
+    [expect_continue_timeout: <duration> | default = 1s]
+
+    # (advanced) Maximum number of idle (keep-alive) connections across all
+    # hosts. 0 means no limit.
+    # CLI flag: -ruler-storage.s3.max-idle-connections
+    [max_idle_connections: <int> | default = 100]
+
+    # (advanced) Maximum number of idle (keep-alive) connections to keep
+    # per-host. If 0, a built-in default value is used.
+    # CLI flag: -ruler-storage.s3.max-idle-connections-per-host
+    [max_idle_connections_per_host: <int> | default = 100]
+
+    # (advanced) Maximum number of connections per host. 0 means no limit.
+    # CLI flag: -ruler-storage.s3.max-connections-per-host
+    [max_connections_per_host: <int> | default = 0]
+
+gcs:
+  # GCS bucket name
+  # CLI flag: -ruler-storage.gcs.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # JSON either from a Google Developers Console client_credentials.json file,
+  # or a Google Developers service account key. Needs to be valid JSON, not a
+  # filesystem path. If empty, fallback to Google default logic:
+  # 1. A JSON file whose path is specified by the GOOGLE_APPLICATION_CREDENTIALS
+  # environment variable. For workload identity federation, refer to
+  # https://cloud.google.com/iam/docs/how-to#using-workload-identity-federation
+  # on how to generate the JSON configuration file for on-prem/non-Google cloud
+  # platforms.
+  # 2. A JSON file in a location known to the gcloud command-line tool:
+  # $HOME/.config/gcloud/application_default_credentials.json.
+  # 3. On Google Compute Engine it fetches credentials from the metadata server.
+  # CLI flag: -ruler-storage.gcs.service-account
+  [service_account: <string> | default = ""]
+
+azure:
+  # Azure storage account name
+  # CLI flag: -ruler-storage.azure.account-name
+  [account_name: <string> | default = ""]
+
+  # Azure storage account key
+  # CLI flag: -ruler-storage.azure.account-key
+  [account_key: <string> | default = ""]
+
+  # Azure storage container name
+  # CLI flag: -ruler-storage.azure.container-name
+  [container_name: <string> | default = ""]
+
+  # Azure storage endpoint suffix without schema. The account name will be
+  # prefixed to this value to create the FQDN. If set to empty string, default
+  # endpoint suffix is used.
+  # CLI flag: -ruler-storage.azure.endpoint-suffix
+  [endpoint_suffix: <string> | default = ""]
+
+  # (advanced) Number of retries for recoverable errors
+  # CLI flag: -ruler-storage.azure.max-retries
+  [max_retries: <int> | default = 20]
+
+  # (advanced) If set, this URL is used instead of
+  # https://<storage-account-name>.<endpoint-suffix> for obtaining
+  # ServicePrincipalToken from MSI.
+  # CLI flag: -ruler-storage.azure.msi-resource
+  [msi_resource: <string> | default = ""]
+
+  # (advanced) User assigned identity. If empty, then System assigned identity
+  # is used.
+  # CLI flag: -ruler-storage.azure.user-assigned-id
+  [user_assigned_id: <string> | default = ""]
+
+swift:
+  # OpenStack Swift authentication API version. 0 to autodetect.
+  # CLI flag: -ruler-storage.swift.auth-version
+  [auth_version: <int> | default = 0]
+
+  # OpenStack Swift authentication URL
+  # CLI flag: -ruler-storage.swift.auth-url
+  [auth_url: <string> | default = ""]
+
+  # OpenStack Swift username.
+  # CLI flag: -ruler-storage.swift.username
+  [username: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -ruler-storage.swift.user-domain-name
+  [user_domain_name: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -ruler-storage.swift.user-domain-id
+  [user_domain_id: <string> | default = ""]
+
+  # OpenStack Swift user ID.
+  # CLI flag: -ruler-storage.swift.user-id
+  [user_id: <string> | default = ""]
+
+  # OpenStack Swift API key.
+  # CLI flag: -ruler-storage.swift.password
+  [password: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -ruler-storage.swift.domain-id
+  [domain_id: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -ruler-storage.swift.domain-name
+  [domain_name: <string> | default = ""]
+
+  # OpenStack Swift project ID (v2,v3 auth only).
+  # CLI flag: -ruler-storage.swift.project-id
+  [project_id: <string> | default = ""]
+
+  # OpenStack Swift project name (v2,v3 auth only).
+  # CLI flag: -ruler-storage.swift.project-name
+  [project_name: <string> | default = ""]
+
+  # ID of the OpenStack Swift project's domain (v3 auth only), only needed if it
+  # differs the from user domain.
+  # CLI flag: -ruler-storage.swift.project-domain-id
+  [project_domain_id: <string> | default = ""]
+
+  # Name of the OpenStack Swift project's domain (v3 auth only), only needed if
+  # it differs from the user domain.
+  # CLI flag: -ruler-storage.swift.project-domain-name
+  [project_domain_name: <string> | default = ""]
+
+  # OpenStack Swift Region to use (v2,v3 auth only).
+  # CLI flag: -ruler-storage.swift.region-name
+  [region_name: <string> | default = ""]
+
+  # Name of the OpenStack Swift container to put chunks in.
+  # CLI flag: -ruler-storage.swift.container-name
+  [container_name: <string> | default = ""]
+
+  # (advanced) Max retries on requests error.
+  # CLI flag: -ruler-storage.swift.max-retries
+  [max_retries: <int> | default = 3]
+
+  # (advanced) Time after which a connection attempt is aborted.
+  # CLI flag: -ruler-storage.swift.connect-timeout
+  [connect_timeout: <duration> | default = 10s]
+
+  # (advanced) Time after which an idle request is aborted. The timeout watchdog
+  # is reset each time some data is received, so the timeout triggers after X
+  # time no data is received on a request.
+  # CLI flag: -ruler-storage.swift.request-timeout
+  [request_timeout: <duration> | default = 5s]
+
+filesystem:
+  # Local filesystem storage directory.
+  # CLI flag: -ruler-storage.filesystem.dir
+  [dir: <string> | default = "ruler"]
 
 local:
   # Directory to scan for rules
@@ -1789,35 +1938,223 @@ The `alertmanager_storage` block configures the alertmanager storage backend.
 # CLI flag: -alertmanager-storage.backend
 [backend: <string> | default = "filesystem"]
 
-# The s3_backend block configures the connection to Amazon S3 object storage
-# backend.
-# The CLI flags prefix for this block configuration is: alertmanager-storage
-[s3: <s3_storage_backend>]
-
-# The gcs_backend block configures the connection to Google Cloud Storage object
-# storage backend.
-# The CLI flags prefix for this block configuration is: alertmanager-storage
-[gcs: <gcs_storage_backend>]
-
-# The azure_storage_backend block configures the connection to Azure object
-# storage backend.
-# The CLI flags prefix for this block configuration is: alertmanager-storage
-[azure: <azure_storage_backend>]
-
-# The swift_storage_backend block configures the connection to OpenStack Object
-# Storage (Swift) object storage backend.
-# The CLI flags prefix for this block configuration is: alertmanager-storage
-[swift: <swift_storage_backend>]
-
-# The filesystem_storage_backend block configures the usage of local file system
-# as object storage backend.
-# The CLI flags prefix for this block configuration is: alertmanager-storage
-[filesystem: <filesystem_storage_backend>]
-
 # (experimental) Prefix for all objects stored in the backend storage. For
 # simplicity, it may only contain digits and English alphabet letters.
 # CLI flag: -alertmanager-storage.storage-prefix
 [storage_prefix: <string> | default = ""]
+
+s3:
+  # The S3 bucket endpoint. It could be an AWS S3 endpoint listed at
+  # https://docs.aws.amazon.com/general/latest/gr/s3.html or the address of an
+  # S3-compatible service in hostname:port format.
+  # CLI flag: -alertmanager-storage.s3.endpoint
+  [endpoint: <string> | default = ""]
+
+  # S3 region. If unset, the client will issue a S3 GetBucketLocation API call
+  # to autodetect it.
+  # CLI flag: -alertmanager-storage.s3.region
+  [region: <string> | default = ""]
+
+  # S3 bucket name
+  # CLI flag: -alertmanager-storage.s3.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # S3 secret access key
+  # CLI flag: -alertmanager-storage.s3.secret-access-key
+  [secret_access_key: <string> | default = ""]
+
+  # S3 access key ID
+  # CLI flag: -alertmanager-storage.s3.access-key-id
+  [access_key_id: <string> | default = ""]
+
+  # (advanced) If enabled, use http:// for the S3 endpoint instead of https://.
+  # This could be useful in local dev/test environments while using an
+  # S3-compatible backend storage, like Minio.
+  # CLI flag: -alertmanager-storage.s3.insecure
+  [insecure: <boolean> | default = false]
+
+  # (advanced) The signature version to use for authenticating against S3.
+  # Supported values are: v4, v2.
+  # CLI flag: -alertmanager-storage.s3.signature-version
+  [signature_version: <string> | default = "v4"]
+
+  # The sse block configures the S3 server-side encryption.
+  # The CLI flags prefix for this block configuration is: alertmanager-storage
+  [sse: <sse>]
+
+  http:
+    # (advanced) The time an idle connection will remain idle before closing.
+    # CLI flag: -alertmanager-storage.s3.http.idle-conn-timeout
+    [idle_conn_timeout: <duration> | default = 1m30s]
+
+    # (advanced) The amount of time the client will wait for a servers response
+    # headers.
+    # CLI flag: -alertmanager-storage.s3.http.response-header-timeout
+    [response_header_timeout: <duration> | default = 2m]
+
+    # (advanced) If the client connects to S3 via HTTPS and this option is
+    # enabled, the client will accept any certificate and hostname.
+    # CLI flag: -alertmanager-storage.s3.http.insecure-skip-verify
+    [insecure_skip_verify: <boolean> | default = false]
+
+    # (advanced) Maximum time to wait for a TLS handshake. 0 means no limit.
+    # CLI flag: -alertmanager-storage.s3.tls-handshake-timeout
+    [tls_handshake_timeout: <duration> | default = 10s]
+
+    # (advanced) The time to wait for a server's first response headers after
+    # fully writing the request headers if the request has an Expect header. 0
+    # to send the request body immediately.
+    # CLI flag: -alertmanager-storage.s3.expect-continue-timeout
+    [expect_continue_timeout: <duration> | default = 1s]
+
+    # (advanced) Maximum number of idle (keep-alive) connections across all
+    # hosts. 0 means no limit.
+    # CLI flag: -alertmanager-storage.s3.max-idle-connections
+    [max_idle_connections: <int> | default = 100]
+
+    # (advanced) Maximum number of idle (keep-alive) connections to keep
+    # per-host. If 0, a built-in default value is used.
+    # CLI flag: -alertmanager-storage.s3.max-idle-connections-per-host
+    [max_idle_connections_per_host: <int> | default = 100]
+
+    # (advanced) Maximum number of connections per host. 0 means no limit.
+    # CLI flag: -alertmanager-storage.s3.max-connections-per-host
+    [max_connections_per_host: <int> | default = 0]
+
+gcs:
+  # GCS bucket name
+  # CLI flag: -alertmanager-storage.gcs.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # JSON either from a Google Developers Console client_credentials.json file,
+  # or a Google Developers service account key. Needs to be valid JSON, not a
+  # filesystem path. If empty, fallback to Google default logic:
+  # 1. A JSON file whose path is specified by the GOOGLE_APPLICATION_CREDENTIALS
+  # environment variable. For workload identity federation, refer to
+  # https://cloud.google.com/iam/docs/how-to#using-workload-identity-federation
+  # on how to generate the JSON configuration file for on-prem/non-Google cloud
+  # platforms.
+  # 2. A JSON file in a location known to the gcloud command-line tool:
+  # $HOME/.config/gcloud/application_default_credentials.json.
+  # 3. On Google Compute Engine it fetches credentials from the metadata server.
+  # CLI flag: -alertmanager-storage.gcs.service-account
+  [service_account: <string> | default = ""]
+
+azure:
+  # Azure storage account name
+  # CLI flag: -alertmanager-storage.azure.account-name
+  [account_name: <string> | default = ""]
+
+  # Azure storage account key
+  # CLI flag: -alertmanager-storage.azure.account-key
+  [account_key: <string> | default = ""]
+
+  # Azure storage container name
+  # CLI flag: -alertmanager-storage.azure.container-name
+  [container_name: <string> | default = ""]
+
+  # Azure storage endpoint suffix without schema. The account name will be
+  # prefixed to this value to create the FQDN. If set to empty string, default
+  # endpoint suffix is used.
+  # CLI flag: -alertmanager-storage.azure.endpoint-suffix
+  [endpoint_suffix: <string> | default = ""]
+
+  # (advanced) Number of retries for recoverable errors
+  # CLI flag: -alertmanager-storage.azure.max-retries
+  [max_retries: <int> | default = 20]
+
+  # (advanced) If set, this URL is used instead of
+  # https://<storage-account-name>.<endpoint-suffix> for obtaining
+  # ServicePrincipalToken from MSI.
+  # CLI flag: -alertmanager-storage.azure.msi-resource
+  [msi_resource: <string> | default = ""]
+
+  # (advanced) User assigned identity. If empty, then System assigned identity
+  # is used.
+  # CLI flag: -alertmanager-storage.azure.user-assigned-id
+  [user_assigned_id: <string> | default = ""]
+
+swift:
+  # OpenStack Swift authentication API version. 0 to autodetect.
+  # CLI flag: -alertmanager-storage.swift.auth-version
+  [auth_version: <int> | default = 0]
+
+  # OpenStack Swift authentication URL
+  # CLI flag: -alertmanager-storage.swift.auth-url
+  [auth_url: <string> | default = ""]
+
+  # OpenStack Swift username.
+  # CLI flag: -alertmanager-storage.swift.username
+  [username: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -alertmanager-storage.swift.user-domain-name
+  [user_domain_name: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -alertmanager-storage.swift.user-domain-id
+  [user_domain_id: <string> | default = ""]
+
+  # OpenStack Swift user ID.
+  # CLI flag: -alertmanager-storage.swift.user-id
+  [user_id: <string> | default = ""]
+
+  # OpenStack Swift API key.
+  # CLI flag: -alertmanager-storage.swift.password
+  [password: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -alertmanager-storage.swift.domain-id
+  [domain_id: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -alertmanager-storage.swift.domain-name
+  [domain_name: <string> | default = ""]
+
+  # OpenStack Swift project ID (v2,v3 auth only).
+  # CLI flag: -alertmanager-storage.swift.project-id
+  [project_id: <string> | default = ""]
+
+  # OpenStack Swift project name (v2,v3 auth only).
+  # CLI flag: -alertmanager-storage.swift.project-name
+  [project_name: <string> | default = ""]
+
+  # ID of the OpenStack Swift project's domain (v3 auth only), only needed if it
+  # differs the from user domain.
+  # CLI flag: -alertmanager-storage.swift.project-domain-id
+  [project_domain_id: <string> | default = ""]
+
+  # Name of the OpenStack Swift project's domain (v3 auth only), only needed if
+  # it differs from the user domain.
+  # CLI flag: -alertmanager-storage.swift.project-domain-name
+  [project_domain_name: <string> | default = ""]
+
+  # OpenStack Swift Region to use (v2,v3 auth only).
+  # CLI flag: -alertmanager-storage.swift.region-name
+  [region_name: <string> | default = ""]
+
+  # Name of the OpenStack Swift container to put chunks in.
+  # CLI flag: -alertmanager-storage.swift.container-name
+  [container_name: <string> | default = ""]
+
+  # (advanced) Max retries on requests error.
+  # CLI flag: -alertmanager-storage.swift.max-retries
+  [max_retries: <int> | default = 3]
+
+  # (advanced) Time after which a connection attempt is aborted.
+  # CLI flag: -alertmanager-storage.swift.connect-timeout
+  [connect_timeout: <duration> | default = 10s]
+
+  # (advanced) Time after which an idle request is aborted. The timeout watchdog
+  # is reset each time some data is received, so the timeout triggers after X
+  # time no data is received on a request.
+  # CLI flag: -alertmanager-storage.swift.request-timeout
+  [request_timeout: <duration> | default = 5s]
+
+filesystem:
+  # Local filesystem storage directory.
+  # CLI flag: -alertmanager-storage.filesystem.dir
+  [dir: <string> | default = "alertmanager"]
 
 local:
   # Path at which alertmanager configurations are stored.
@@ -2108,11 +2445,6 @@ The `consul` block configures the consul client. The supported CLI flags `<prefi
 # (advanced) Burst size used in rate limit. Values less than 1 are treated as 1.
 # CLI flag: -<prefix>.consul.watch-burst-size
 [watch_burst_size: <int> | default = 1]
-
-# (advanced) Maximum duration to wait before retrying a Compare And Swap (CAS)
-# operation.
-# CLI flag: -<prefix>.consul.cas-retry-delay
-[cas_retry_delay: <duration> | default = 1s]
 ```
 
 ### memberlist
@@ -2174,20 +2506,6 @@ The `memberlist` block configures the Gossip memberlist.
 # traversal.
 # CLI flag: -memberlist.advertise-port
 [advertise_port: <int> | default = 7946]
-
-# (experimental) The cluster label is an optional string to include in outbound
-# packets and gossip streams. Other members in the memberlist cluster will
-# discard any message whose label doesn't match the configured one, unless the
-# 'cluster-label-verification-disabled' configuration option is set to true.
-# CLI flag: -memberlist.cluster-label
-[cluster_label: <string> | default = ""]
-
-# (experimental) When true, memberlist doesn't verify that inbound packets and
-# gossip streams have the cluster label matching the configured one. This
-# verification should be disabled while rolling out the change to the configured
-# cluster label in a live memberlist cluster.
-# CLI flag: -memberlist.cluster-label-verification-disabled
-[cluster_label_verification_disabled: <boolean> | default = false]
 
 # Other cluster members to join. Can be specified multiple times. It can be an
 # IP, hostname or an entry specified in the DNS Service Discovery format.
@@ -2639,35 +2957,223 @@ The `blocks_storage` block configures the blocks storage.
 # CLI flag: -blocks-storage.backend
 [backend: <string> | default = "filesystem"]
 
-# The s3_backend block configures the connection to Amazon S3 object storage
-# backend.
-# The CLI flags prefix for this block configuration is: blocks-storage
-[s3: <s3_storage_backend>]
-
-# The gcs_backend block configures the connection to Google Cloud Storage object
-# storage backend.
-# The CLI flags prefix for this block configuration is: blocks-storage
-[gcs: <gcs_storage_backend>]
-
-# The azure_storage_backend block configures the connection to Azure object
-# storage backend.
-# The CLI flags prefix for this block configuration is: blocks-storage
-[azure: <azure_storage_backend>]
-
-# The swift_storage_backend block configures the connection to OpenStack Object
-# Storage (Swift) object storage backend.
-# The CLI flags prefix for this block configuration is: blocks-storage
-[swift: <swift_storage_backend>]
-
-# The filesystem_storage_backend block configures the usage of local file system
-# as object storage backend.
-# The CLI flags prefix for this block configuration is: blocks-storage
-[filesystem: <filesystem_storage_backend>]
-
 # (experimental) Prefix for all objects stored in the backend storage. For
 # simplicity, it may only contain digits and English alphabet letters.
 # CLI flag: -blocks-storage.storage-prefix
 [storage_prefix: <string> | default = ""]
+
+s3:
+  # The S3 bucket endpoint. It could be an AWS S3 endpoint listed at
+  # https://docs.aws.amazon.com/general/latest/gr/s3.html or the address of an
+  # S3-compatible service in hostname:port format.
+  # CLI flag: -blocks-storage.s3.endpoint
+  [endpoint: <string> | default = ""]
+
+  # S3 region. If unset, the client will issue a S3 GetBucketLocation API call
+  # to autodetect it.
+  # CLI flag: -blocks-storage.s3.region
+  [region: <string> | default = ""]
+
+  # S3 bucket name
+  # CLI flag: -blocks-storage.s3.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # S3 secret access key
+  # CLI flag: -blocks-storage.s3.secret-access-key
+  [secret_access_key: <string> | default = ""]
+
+  # S3 access key ID
+  # CLI flag: -blocks-storage.s3.access-key-id
+  [access_key_id: <string> | default = ""]
+
+  # (advanced) If enabled, use http:// for the S3 endpoint instead of https://.
+  # This could be useful in local dev/test environments while using an
+  # S3-compatible backend storage, like Minio.
+  # CLI flag: -blocks-storage.s3.insecure
+  [insecure: <boolean> | default = false]
+
+  # (advanced) The signature version to use for authenticating against S3.
+  # Supported values are: v4, v2.
+  # CLI flag: -blocks-storage.s3.signature-version
+  [signature_version: <string> | default = "v4"]
+
+  # The sse block configures the S3 server-side encryption.
+  # The CLI flags prefix for this block configuration is: blocks-storage
+  [sse: <sse>]
+
+  http:
+    # (advanced) The time an idle connection will remain idle before closing.
+    # CLI flag: -blocks-storage.s3.http.idle-conn-timeout
+    [idle_conn_timeout: <duration> | default = 1m30s]
+
+    # (advanced) The amount of time the client will wait for a servers response
+    # headers.
+    # CLI flag: -blocks-storage.s3.http.response-header-timeout
+    [response_header_timeout: <duration> | default = 2m]
+
+    # (advanced) If the client connects to S3 via HTTPS and this option is
+    # enabled, the client will accept any certificate and hostname.
+    # CLI flag: -blocks-storage.s3.http.insecure-skip-verify
+    [insecure_skip_verify: <boolean> | default = false]
+
+    # (advanced) Maximum time to wait for a TLS handshake. 0 means no limit.
+    # CLI flag: -blocks-storage.s3.tls-handshake-timeout
+    [tls_handshake_timeout: <duration> | default = 10s]
+
+    # (advanced) The time to wait for a server's first response headers after
+    # fully writing the request headers if the request has an Expect header. 0
+    # to send the request body immediately.
+    # CLI flag: -blocks-storage.s3.expect-continue-timeout
+    [expect_continue_timeout: <duration> | default = 1s]
+
+    # (advanced) Maximum number of idle (keep-alive) connections across all
+    # hosts. 0 means no limit.
+    # CLI flag: -blocks-storage.s3.max-idle-connections
+    [max_idle_connections: <int> | default = 100]
+
+    # (advanced) Maximum number of idle (keep-alive) connections to keep
+    # per-host. If 0, a built-in default value is used.
+    # CLI flag: -blocks-storage.s3.max-idle-connections-per-host
+    [max_idle_connections_per_host: <int> | default = 100]
+
+    # (advanced) Maximum number of connections per host. 0 means no limit.
+    # CLI flag: -blocks-storage.s3.max-connections-per-host
+    [max_connections_per_host: <int> | default = 0]
+
+gcs:
+  # GCS bucket name
+  # CLI flag: -blocks-storage.gcs.bucket-name
+  [bucket_name: <string> | default = ""]
+
+  # JSON either from a Google Developers Console client_credentials.json file,
+  # or a Google Developers service account key. Needs to be valid JSON, not a
+  # filesystem path. If empty, fallback to Google default logic:
+  # 1. A JSON file whose path is specified by the GOOGLE_APPLICATION_CREDENTIALS
+  # environment variable. For workload identity federation, refer to
+  # https://cloud.google.com/iam/docs/how-to#using-workload-identity-federation
+  # on how to generate the JSON configuration file for on-prem/non-Google cloud
+  # platforms.
+  # 2. A JSON file in a location known to the gcloud command-line tool:
+  # $HOME/.config/gcloud/application_default_credentials.json.
+  # 3. On Google Compute Engine it fetches credentials from the metadata server.
+  # CLI flag: -blocks-storage.gcs.service-account
+  [service_account: <string> | default = ""]
+
+azure:
+  # Azure storage account name
+  # CLI flag: -blocks-storage.azure.account-name
+  [account_name: <string> | default = ""]
+
+  # Azure storage account key
+  # CLI flag: -blocks-storage.azure.account-key
+  [account_key: <string> | default = ""]
+
+  # Azure storage container name
+  # CLI flag: -blocks-storage.azure.container-name
+  [container_name: <string> | default = ""]
+
+  # Azure storage endpoint suffix without schema. The account name will be
+  # prefixed to this value to create the FQDN. If set to empty string, default
+  # endpoint suffix is used.
+  # CLI flag: -blocks-storage.azure.endpoint-suffix
+  [endpoint_suffix: <string> | default = ""]
+
+  # (advanced) Number of retries for recoverable errors
+  # CLI flag: -blocks-storage.azure.max-retries
+  [max_retries: <int> | default = 20]
+
+  # (advanced) If set, this URL is used instead of
+  # https://<storage-account-name>.<endpoint-suffix> for obtaining
+  # ServicePrincipalToken from MSI.
+  # CLI flag: -blocks-storage.azure.msi-resource
+  [msi_resource: <string> | default = ""]
+
+  # (advanced) User assigned identity. If empty, then System assigned identity
+  # is used.
+  # CLI flag: -blocks-storage.azure.user-assigned-id
+  [user_assigned_id: <string> | default = ""]
+
+swift:
+  # OpenStack Swift authentication API version. 0 to autodetect.
+  # CLI flag: -blocks-storage.swift.auth-version
+  [auth_version: <int> | default = 0]
+
+  # OpenStack Swift authentication URL
+  # CLI flag: -blocks-storage.swift.auth-url
+  [auth_url: <string> | default = ""]
+
+  # OpenStack Swift username.
+  # CLI flag: -blocks-storage.swift.username
+  [username: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -blocks-storage.swift.user-domain-name
+  [user_domain_name: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -blocks-storage.swift.user-domain-id
+  [user_domain_id: <string> | default = ""]
+
+  # OpenStack Swift user ID.
+  # CLI flag: -blocks-storage.swift.user-id
+  [user_id: <string> | default = ""]
+
+  # OpenStack Swift API key.
+  # CLI flag: -blocks-storage.swift.password
+  [password: <string> | default = ""]
+
+  # OpenStack Swift user's domain ID.
+  # CLI flag: -blocks-storage.swift.domain-id
+  [domain_id: <string> | default = ""]
+
+  # OpenStack Swift user's domain name.
+  # CLI flag: -blocks-storage.swift.domain-name
+  [domain_name: <string> | default = ""]
+
+  # OpenStack Swift project ID (v2,v3 auth only).
+  # CLI flag: -blocks-storage.swift.project-id
+  [project_id: <string> | default = ""]
+
+  # OpenStack Swift project name (v2,v3 auth only).
+  # CLI flag: -blocks-storage.swift.project-name
+  [project_name: <string> | default = ""]
+
+  # ID of the OpenStack Swift project's domain (v3 auth only), only needed if it
+  # differs the from user domain.
+  # CLI flag: -blocks-storage.swift.project-domain-id
+  [project_domain_id: <string> | default = ""]
+
+  # Name of the OpenStack Swift project's domain (v3 auth only), only needed if
+  # it differs from the user domain.
+  # CLI flag: -blocks-storage.swift.project-domain-name
+  [project_domain_name: <string> | default = ""]
+
+  # OpenStack Swift Region to use (v2,v3 auth only).
+  # CLI flag: -blocks-storage.swift.region-name
+  [region_name: <string> | default = ""]
+
+  # Name of the OpenStack Swift container to put chunks in.
+  # CLI flag: -blocks-storage.swift.container-name
+  [container_name: <string> | default = ""]
+
+  # (advanced) Max retries on requests error.
+  # CLI flag: -blocks-storage.swift.max-retries
+  [max_retries: <int> | default = 3]
+
+  # (advanced) Time after which a connection attempt is aborted.
+  # CLI flag: -blocks-storage.swift.connect-timeout
+  [connect_timeout: <duration> | default = 10s]
+
+  # (advanced) Time after which an idle request is aborted. The timeout watchdog
+  # is reset each time some data is received, so the timeout triggers after X
+  # time no data is received on a request.
+  # CLI flag: -blocks-storage.swift.request-timeout
+  [request_timeout: <duration> | default = 5s]
+
+filesystem:
+  # Local filesystem storage directory.
+  # CLI flag: -blocks-storage.filesystem.dir
+  [dir: <string> | default = "blocks"]
 
 # This configures how the querier and store-gateway discover and synchronize
 # blocks stored in the bucket.
@@ -3061,7 +3567,8 @@ The `compactor` block configures the compactor component.
 [meta_sync_concurrency: <int> | default = 20]
 
 # (advanced) Minimum age of fresh (non-compacted) blocks before they are being
-# processed.
+# processed. Malformed blocks older than the maximum of consistency-delay and
+# 48h0m0s will be removed.
 # CLI flag: -compactor.consistency-delay
 [consistency_delay: <duration> | default = 0s]
 
@@ -3344,6 +3851,31 @@ sharding_ring:
 [thread_pool_size: <int> | default = 0]
 ```
 
+### sse
+
+The `sse` block configures the S3 server-side encryption. The supported CLI flags `<prefix>` used to reference this configuration block are:
+
+- `alertmanager-storage`
+- `blocks-storage`
+- `ruler-storage`
+
+&nbsp;
+
+```yaml
+# Enable AWS Server Side Encryption. Supported values: SSE-KMS, SSE-S3.
+# CLI flag: -<prefix>.s3.sse.type
+[type: <string> | default = ""]
+
+# KMS Key ID used to encrypt objects in S3
+# CLI flag: -<prefix>.s3.sse.kms-key-id
+[kms_key_id: <string> | default = ""]
+
+# KMS Encryption Context used for object encryption. It expects JSON formatted
+# string.
+# CLI flag: -<prefix>.s3.sse.kms-encryption-context
+[kms_encryption_context: <string> | default = ""]
+```
+
 ### memcached
 
 The `memcached` block configures the Memcached-based caching backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
@@ -3395,287 +3927,4 @@ The `memcached` block configures the Memcached-based caching backend. The suppor
 # not stored. If set to 0, no maximum size is enforced.
 # CLI flag: -<prefix>.memcached.max-item-size
 [max_item_size: <int> | default = 1048576]
-```
-
-### s3_storage_backend
-
-The s3_backend block configures the connection to Amazon S3 object storage backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
-
-- `alertmanager-storage`
-- `blocks-storage`
-- `common.storage`
-- `ruler-storage`
-
-&nbsp;
-
-```yaml
-# The S3 bucket endpoint. It could be an AWS S3 endpoint listed at
-# https://docs.aws.amazon.com/general/latest/gr/s3.html or the address of an
-# S3-compatible service in hostname:port format.
-# CLI flag: -<prefix>.s3.endpoint
-[endpoint: <string> | default = ""]
-
-# S3 region. If unset, the client will issue a S3 GetBucketLocation API call to
-# autodetect it.
-# CLI flag: -<prefix>.s3.region
-[region: <string> | default = ""]
-
-# S3 bucket name
-# CLI flag: -<prefix>.s3.bucket-name
-[bucket_name: <string> | default = ""]
-
-# S3 secret access key
-# CLI flag: -<prefix>.s3.secret-access-key
-[secret_access_key: <string> | default = ""]
-
-# S3 access key ID
-# CLI flag: -<prefix>.s3.access-key-id
-[access_key_id: <string> | default = ""]
-
-# (advanced) If enabled, use http:// for the S3 endpoint instead of https://.
-# This could be useful in local dev/test environments while using an
-# S3-compatible backend storage, like Minio.
-# CLI flag: -<prefix>.s3.insecure
-[insecure: <boolean> | default = false]
-
-# (advanced) The signature version to use for authenticating against S3.
-# Supported values are: v4, v2.
-# CLI flag: -<prefix>.s3.signature-version
-[signature_version: <string> | default = "v4"]
-
-sse:
-  # Enable AWS Server Side Encryption. Supported values: SSE-KMS, SSE-S3.
-  # CLI flag: -<prefix>.s3.sse.type
-  [type: <string> | default = ""]
-
-  # KMS Key ID used to encrypt objects in S3
-  # CLI flag: -<prefix>.s3.sse.kms-key-id
-  [kms_key_id: <string> | default = ""]
-
-  # KMS Encryption Context used for object encryption. It expects JSON formatted
-  # string.
-  # CLI flag: -<prefix>.s3.sse.kms-encryption-context
-  [kms_encryption_context: <string> | default = ""]
-
-http:
-  # (advanced) The time an idle connection will remain idle before closing.
-  # CLI flag: -<prefix>.s3.http.idle-conn-timeout
-  [idle_conn_timeout: <duration> | default = 1m30s]
-
-  # (advanced) The amount of time the client will wait for a servers response
-  # headers.
-  # CLI flag: -<prefix>.s3.http.response-header-timeout
-  [response_header_timeout: <duration> | default = 2m]
-
-  # (advanced) If the client connects to S3 via HTTPS and this option is
-  # enabled, the client will accept any certificate and hostname.
-  # CLI flag: -<prefix>.s3.http.insecure-skip-verify
-  [insecure_skip_verify: <boolean> | default = false]
-
-  # (advanced) Maximum time to wait for a TLS handshake. 0 means no limit.
-  # CLI flag: -<prefix>.s3.tls-handshake-timeout
-  [tls_handshake_timeout: <duration> | default = 10s]
-
-  # (advanced) The time to wait for a server's first response headers after
-  # fully writing the request headers if the request has an Expect header. 0 to
-  # send the request body immediately.
-  # CLI flag: -<prefix>.s3.expect-continue-timeout
-  [expect_continue_timeout: <duration> | default = 1s]
-
-  # (advanced) Maximum number of idle (keep-alive) connections across all hosts.
-  # 0 means no limit.
-  # CLI flag: -<prefix>.s3.max-idle-connections
-  [max_idle_connections: <int> | default = 100]
-
-  # (advanced) Maximum number of idle (keep-alive) connections to keep per-host.
-  # If 0, a built-in default value is used.
-  # CLI flag: -<prefix>.s3.max-idle-connections-per-host
-  [max_idle_connections_per_host: <int> | default = 100]
-
-  # (advanced) Maximum number of connections per host. 0 means no limit.
-  # CLI flag: -<prefix>.s3.max-connections-per-host
-  [max_connections_per_host: <int> | default = 0]
-```
-
-### gcs_storage_backend
-
-The gcs_backend block configures the connection to Google Cloud Storage object storage backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
-
-- `alertmanager-storage`
-- `blocks-storage`
-- `common.storage`
-- `ruler-storage`
-
-&nbsp;
-
-```yaml
-# GCS bucket name
-# CLI flag: -<prefix>.gcs.bucket-name
-[bucket_name: <string> | default = ""]
-
-# JSON either from a Google Developers Console client_credentials.json file, or
-# a Google Developers service account key. Needs to be valid JSON, not a
-# filesystem path. If empty, fallback to Google default logic:
-# 1. A JSON file whose path is specified by the GOOGLE_APPLICATION_CREDENTIALS
-# environment variable. For workload identity federation, refer to
-# https://cloud.google.com/iam/docs/how-to#using-workload-identity-federation on
-# how to generate the JSON configuration file for on-prem/non-Google cloud
-# platforms.
-# 2. A JSON file in a location known to the gcloud command-line tool:
-# $HOME/.config/gcloud/application_default_credentials.json.
-# 3. On Google Compute Engine it fetches credentials from the metadata server.
-# CLI flag: -<prefix>.gcs.service-account
-[service_account: <string> | default = ""]
-```
-
-### azure_storage_backend
-
-The `azure_storage_backend` block configures the connection to Azure object storage backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
-
-- `alertmanager-storage`
-- `blocks-storage`
-- `common.storage`
-- `ruler-storage`
-
-&nbsp;
-
-```yaml
-# Azure storage account name
-# CLI flag: -<prefix>.azure.account-name
-[account_name: <string> | default = ""]
-
-# Azure storage account key
-# CLI flag: -<prefix>.azure.account-key
-[account_key: <string> | default = ""]
-
-# Azure storage container name
-# CLI flag: -<prefix>.azure.container-name
-[container_name: <string> | default = ""]
-
-# Azure storage endpoint suffix without schema. The account name will be
-# prefixed to this value to create the FQDN. If set to empty string, default
-# endpoint suffix is used.
-# CLI flag: -<prefix>.azure.endpoint-suffix
-[endpoint_suffix: <string> | default = ""]
-
-# (advanced) Number of retries for recoverable errors
-# CLI flag: -<prefix>.azure.max-retries
-[max_retries: <int> | default = 20]
-
-# (advanced) If set, this URL is used instead of
-# https://<storage-account-name>.<endpoint-suffix> for obtaining
-# ServicePrincipalToken from MSI.
-# CLI flag: -<prefix>.azure.msi-resource
-[msi_resource: <string> | default = ""]
-
-# (advanced) User assigned identity. If empty, then System assigned identity is
-# used.
-# CLI flag: -<prefix>.azure.user-assigned-id
-[user_assigned_id: <string> | default = ""]
-```
-
-### swift_storage_backend
-
-The `swift_storage_backend` block configures the connection to OpenStack Object Storage (Swift) object storage backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
-
-- `alertmanager-storage`
-- `blocks-storage`
-- `common.storage`
-- `ruler-storage`
-
-&nbsp;
-
-```yaml
-# OpenStack Swift authentication API version. 0 to autodetect.
-# CLI flag: -<prefix>.swift.auth-version
-[auth_version: <int> | default = 0]
-
-# OpenStack Swift authentication URL
-# CLI flag: -<prefix>.swift.auth-url
-[auth_url: <string> | default = ""]
-
-# OpenStack Swift username.
-# CLI flag: -<prefix>.swift.username
-[username: <string> | default = ""]
-
-# OpenStack Swift user's domain name.
-# CLI flag: -<prefix>.swift.user-domain-name
-[user_domain_name: <string> | default = ""]
-
-# OpenStack Swift user's domain ID.
-# CLI flag: -<prefix>.swift.user-domain-id
-[user_domain_id: <string> | default = ""]
-
-# OpenStack Swift user ID.
-# CLI flag: -<prefix>.swift.user-id
-[user_id: <string> | default = ""]
-
-# OpenStack Swift API key.
-# CLI flag: -<prefix>.swift.password
-[password: <string> | default = ""]
-
-# OpenStack Swift user's domain ID.
-# CLI flag: -<prefix>.swift.domain-id
-[domain_id: <string> | default = ""]
-
-# OpenStack Swift user's domain name.
-# CLI flag: -<prefix>.swift.domain-name
-[domain_name: <string> | default = ""]
-
-# OpenStack Swift project ID (v2,v3 auth only).
-# CLI flag: -<prefix>.swift.project-id
-[project_id: <string> | default = ""]
-
-# OpenStack Swift project name (v2,v3 auth only).
-# CLI flag: -<prefix>.swift.project-name
-[project_name: <string> | default = ""]
-
-# ID of the OpenStack Swift project's domain (v3 auth only), only needed if it
-# differs the from user domain.
-# CLI flag: -<prefix>.swift.project-domain-id
-[project_domain_id: <string> | default = ""]
-
-# Name of the OpenStack Swift project's domain (v3 auth only), only needed if it
-# differs from the user domain.
-# CLI flag: -<prefix>.swift.project-domain-name
-[project_domain_name: <string> | default = ""]
-
-# OpenStack Swift Region to use (v2,v3 auth only).
-# CLI flag: -<prefix>.swift.region-name
-[region_name: <string> | default = ""]
-
-# Name of the OpenStack Swift container to put chunks in.
-# CLI flag: -<prefix>.swift.container-name
-[container_name: <string> | default = ""]
-
-# (advanced) Max retries on requests error.
-# CLI flag: -<prefix>.swift.max-retries
-[max_retries: <int> | default = 3]
-
-# (advanced) Time after which a connection attempt is aborted.
-# CLI flag: -<prefix>.swift.connect-timeout
-[connect_timeout: <duration> | default = 10s]
-
-# (advanced) Time after which an idle request is aborted. The timeout watchdog
-# is reset each time some data is received, so the timeout triggers after X time
-# no data is received on a request.
-# CLI flag: -<prefix>.swift.request-timeout
-[request_timeout: <duration> | default = 5s]
-```
-
-### filesystem_storage_backend
-
-The `filesystem_storage_backend` block configures the usage of local file system as object storage backend. The supported CLI flags `<prefix>` used to reference this configuration block are:
-
-- `alertmanager-storage`
-- `blocks-storage`
-- `common.storage`
-- `ruler-storage`
-
-&nbsp;
-
-```yaml
-# Local filesystem storage directory.
-# CLI flag: -<prefix>.filesystem.dir
-[dir: <string> | default = ""]
 ```

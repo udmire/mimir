@@ -63,7 +63,6 @@ var overrides = map[string]Category{
 	"server.log-source-ips-regex":                       Advanced,
 	"server.path-prefix":                                Advanced,
 	"server.register-instrumentation":                   Advanced,
-	"server.log-request-at-info-level-enabled":          Advanced,
 }
 
 func AddOverrides(o map[string]Category) {

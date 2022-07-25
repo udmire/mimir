@@ -1,9 +1,7 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/monitoring-grafana-mimir/collecting-metrics-and-logs/
-description: Learn how to collect metrics and logs from Grafana Mimir itself
-menuTitle: Collecting metrics and logs
-title: Collecting metrics and logs from Grafana Mimir
+title: "Collecting metrics and logs from Grafana Mimir"
+menuTitle: "Collecting metrics and logs"
+description: "Learn how to collect metrics and logs from Grafana Mimir itself"
 weight: 60
 ---
 

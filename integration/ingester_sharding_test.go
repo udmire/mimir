@@ -47,10 +47,7 @@ func TestIngesterSharding(t *testing.T) {
 			require.NoError(t, err)
 			defer s.Close()
 
-			flags := mergeFlags(
-				BlocksStorageFlags(),
-				BlocksStorageS3Flags(),
-			)
+			flags := BlocksStorageFlags()
 			flags["-distributor.ingestion-tenant-shard-size"] = strconv.Itoa(testData.tenantShardSize)
 			// We're verifying that shuffle sharding on the read path works so we need to set `query-ingesters-within`
 			// to a small enough value that they'll have been part of the ring for long enough by the time we attempt

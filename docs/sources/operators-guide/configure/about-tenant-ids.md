@@ -1,16 +1,14 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/configuring/about-tenant-ids/
-description: Learn about tenant ID restrictions.
-menuTitle: About tenant IDs
-title: About Grafana Mimir tenant IDs
+title: "About Grafana Mimir tenant IDs"
+menuTitle: "About tenant IDs"
+description: "Learn about tenant ID restrictions."
 weight: 10
 ---
 
 # About Grafana Mimir tenant IDs
 
 Within a Grafana Mimir cluster, the tenant ID is the unique identifier of a tenant.
-For information about how Grafana Mimir components use tenant IDs, refer to [Authentication and authorization]({{< relref "../secure/authentication-and-authorization.md" >}}).
+For information about how Grafana Mimir components use tenant IDs, refer to [Authentication and authorization]({{< relref "../securing/authentication-and-authorization.md" >}}).
 
 ## Restrictions
 

@@ -1,9 +1,7 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/deploying-grafana-mimir/jsonnet/configuring-low-resources/
-description: Learn how to configure Grafana Mimir when using Jsonnet.
-menuTitle: Configuring low resources
-title: Configuring Grafana Mimir to use low resources with Jsonnet
+title: "Configuring Grafana Mimir to use low resources with Jsonnet"
+menuTitle: "Configuring low resources"
+description: "Learn how to configure Grafana Mimir when using Jsonnet."
 weight: 20
 ---
 
@@ -41,7 +39,7 @@ mimir {
 
 Default scaling of Mimir components in the provided Jsonnet is opinionated and based on engineers’ years of experience running it at Grafana Labs.
 The default resource requests and limits are also fine-tuned for the provided alerting rules.
-For more information, see [Monitor Grafana Mimir]({{< relref "../../monitor-grafana-mimir/_index.md" >}}).
+For more information, see [Monitoring Grafana Mimir]({{< relref "../../monitoring-grafana-mimir/_index.md" >}}).
 
 However, there are use cases where you might want to change the default resource requests, their limits, or both.
 For example, if you are just testing Mimir and you want to run it on a small (possibly one-node) Kubernetes cluster, and you do not have tens of gigabytes of memory or multiple cores to schedule the components, consider overriding the scaling requirements as follows:

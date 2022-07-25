@@ -805,8 +805,9 @@ func TestSharding(t *testing.T) {
 						},
 						HeartbeatTimeout: 1 * time.Minute,
 					},
-					EnabledTenants:  tc.enabledUsers,
-					DisabledTenants: tc.disabledUsers,
+					FlushCheckPeriod: 0,
+					EnabledTenants:   tc.enabledUsers,
+					DisabledTenants:  tc.disabledUsers,
 				}
 
 				r := buildRuler(t, cfg, newMockRuleStore(allRules), nil)

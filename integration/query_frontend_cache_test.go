@@ -27,10 +27,7 @@ func TestQueryFrontendUnalignedQuery(t *testing.T) {
 	require.NoError(t, s.StartAndWaitReady(consul, memcached))
 
 	const configFile = ""
-	flags := mergeFlags(
-		BlocksStorageFlags(),
-		BlocksStorageS3Flags(),
-	)
+	flags := BlocksStorageFlags()
 
 	minio := e2edb.NewMinio(9000, flags["-blocks-storage.s3.bucket-name"])
 	require.NoError(t, s.StartAndWaitReady(minio))

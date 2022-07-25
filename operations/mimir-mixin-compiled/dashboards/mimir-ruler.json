@@ -398,21 +398,12 @@
                         "legendFormat": "failed",
                         "legendLink": null,
                         "step": 10
-                     },
-                     {
-                        "expr": "sum(rate(cortex_prometheus_rule_group_iterations_missed_total{cluster=~\"$cluster\", job=~\"($namespace)/((ruler|cortex|mimir))\"}[$__rate_interval]))",
-                        "format": "time_series",
-                        "interval": "15s",
-                        "intervalFactor": 2,
-                        "legendFormat": "missed",
-                        "legendLink": null,
-                        "step": 10
                      }
                   ],
                   "thresholds": [ ],
                   "timeFrom": null,
                   "timeShift": null,
-                  "title": "Evaluations per second",
+                  "title": "EPS",
                   "tooltip": {
                      "shared": false,
                      "sort": 0,
@@ -505,7 +496,7 @@
                   },
                   "yaxes": [
                      {
-                        "format": "s",
+                        "format": "short",
                         "label": null,
                         "logBase": 1,
                         "max": null,
@@ -1769,7 +1760,7 @@
                   },
                   "yaxes": [
                      {
-                        "format": "s",
+                        "format": "short",
                         "label": null,
                         "logBase": 1,
                         "max": null,
@@ -1935,7 +1926,7 @@
                   },
                   "yaxes": [
                      {
-                        "format": "s",
+                        "format": "short",
                         "label": null,
                         "logBase": 1,
                         "max": null,

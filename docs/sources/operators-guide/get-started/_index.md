@@ -1,13 +1,11 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/getting-started/
-description: Learn how to get started with Grafana Mimir.
-menuTitle: Get started
-title: Get started with Grafana Mimir
+title: "Getting started with Grafana Mimir"
+menuTitle: "Getting started"
+description: "Learn how to get started with Grafana Mimir."
 weight: 10
 ---
 
-# Get started with Grafana Mimir
+# Getting started with Grafana Mimir
 
 There are two different options for getting started with Grafana Mimir:
 

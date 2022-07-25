@@ -25,7 +25,7 @@ type Config struct {
 func (cfg *Config) RegisterFlags(f *flag.FlagSet) {
 	prefix := "ruler-storage."
 
-	cfg.StorageBackendConfig.ExtraBackends = []string{local.Name}
+	cfg.ExtraBackends = []string{local.Name}
 	cfg.Local.RegisterFlagsWithPrefix(prefix, f)
 	cfg.RegisterFlagsWithPrefixAndDefaultDirectory(prefix, "ruler", f)
 }

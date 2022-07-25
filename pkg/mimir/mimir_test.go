@@ -61,11 +61,9 @@ func TestMimir(t *testing.T) {
 		Ingester: ingester.Config{
 			BlocksStorageConfig: tsdb.BlocksStorageConfig{
 				Bucket: bucket.Config{
-					StorageBackendConfig: bucket.StorageBackendConfig{
-						Backend: bucket.S3,
-						S3: s3.Config{
-							Endpoint: "localhost",
-						},
+					Backend: bucket.S3,
+					S3: s3.Config{
+						Endpoint: "localhost",
 					},
 				},
 			},
@@ -79,11 +77,9 @@ func TestMimir(t *testing.T) {
 		},
 		BlocksStorage: tsdb.BlocksStorageConfig{
 			Bucket: bucket.Config{
-				StorageBackendConfig: bucket.StorageBackendConfig{
-					Backend: bucket.S3,
-					S3: s3.Config{
-						Endpoint: "localhost",
-					},
+				Backend: bucket.S3,
+				S3: s3.Config{
+					Endpoint: "localhost",
 				},
 			},
 			BucketStore: tsdb.BucketStoreConfig{
@@ -106,11 +102,9 @@ func TestMimir(t *testing.T) {
 		},
 		RulerStorage: rulestore.Config{
 			Config: bucket.Config{
-				StorageBackendConfig: bucket.StorageBackendConfig{
-					Backend: "filesystem",
-					Filesystem: filesystem.Config{
-						Directory: t.TempDir(),
-					},
+				Backend: "filesystem",
+				Filesystem: filesystem.Config{
+					Directory: t.TempDir(),
 				},
 			},
 		},
@@ -130,11 +124,9 @@ func TestMimir(t *testing.T) {
 		},
 		AlertmanagerStorage: alertstore.Config{
 			Config: bucket.Config{
-				StorageBackendConfig: bucket.StorageBackendConfig{
-					Backend: "filesystem",
-					Filesystem: filesystem.Config{
-						Directory: t.TempDir(),
-					},
+				Backend: "filesystem",
+				Filesystem: filesystem.Config{
+					Directory: t.TempDir(),
 				},
 			},
 		},

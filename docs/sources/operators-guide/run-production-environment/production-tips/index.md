@@ -22,7 +22,7 @@ The total number of file descriptors, used to load TSDB files, linearly increase
 We recommend fine-tuning the following settings to avoid reaching the maximum number of open file descriptors:
 
 1. Configure the system's `file-max` ulimit to at least `65536`. Increase the limit to `1048576` when running a Grafana Mimir cluster with more than a thousand tenants.
-1. Enable ingesters [shuffle sharding]({{< relref "../../configure/configuring-shuffle-sharding/index.md" >}}) to reduce the number of tenants per ingester.
+1. Enable ingesters [shuffle sharding]({{< relref "../../configuring/configuring-shuffle-sharding/index.md" >}}) to reduce the number of tenants per ingester.
 
 ### Ingester disk space
 
@@ -123,4 +123,4 @@ Running a dedicated Memcached cluster for each cache type is not required, but r
 ## Security
 
 We recommend securing the Grafana Mimir cluster.
-For more information about securing a Mimir cluster, refer to [Secure Grafana Mimir]({{< relref "../../secure/_index.md" >}}).
+For more information about securing a Mimir cluster, refer to [Securing Grafana Mimir]({{< relref "../../securing/_index.md" >}}).

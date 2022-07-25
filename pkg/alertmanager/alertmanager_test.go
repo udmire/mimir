@@ -65,7 +65,6 @@ func createAlertmanagerAndSendAlerts(t *testing.T, alertGroups, groupsLimit, exp
 		TenantDataDir:     t.TempDir(),
 		ExternalURL:       &url.URL{Path: "/am"},
 		ShardingEnabled:   true,
-		Store:             prepareInMemoryAlertStore(),
 		Replicator:        &stubReplicator{},
 		ReplicationFactor: 1,
 		// We have to set this interval non-zero, though we don't need the persister to do anything.
@@ -149,7 +148,6 @@ func TestDispatcherLoggerInsightKey(t *testing.T) {
 		TenantDataDir:     t.TempDir(),
 		ExternalURL:       &url.URL{Path: "/am"},
 		ShardingEnabled:   true,
-		Store:             prepareInMemoryAlertStore(),
 		Replicator:        &stubReplicator{},
 		ReplicationFactor: 1,
 		PersisterConfig:   PersisterConfig{Interval: time.Hour},

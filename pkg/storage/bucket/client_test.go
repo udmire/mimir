@@ -140,31 +140,31 @@ func TestClient_ConfigValidation(t *testing.T) {
 	}{
 		{
 			name: "valid storage_prefix",
-			cfg:  Config{StorageBackendConfig: StorageBackendConfig{Backend: Filesystem}, StoragePrefix: "helloworld"},
+			cfg:  Config{Backend: Filesystem, StoragePrefix: "helloworld"},
 		},
 		{
 			name:          "storage_prefix non-alphanumeric characters",
-			cfg:           Config{StorageBackendConfig: StorageBackendConfig{Backend: Filesystem}, StoragePrefix: "hello-world!"},
+			cfg:           Config{Backend: Filesystem, StoragePrefix: "hello-world!"},
 			expectedError: ErrInvalidCharactersInStoragePrefix,
 		},
 		{
 			name:          "storage_prefix suffixed with a slash (non-alphanumeric)",
-			cfg:           Config{StorageBackendConfig: StorageBackendConfig{Backend: Filesystem}, StoragePrefix: "helloworld/"},
+			cfg:           Config{Backend: Filesystem, StoragePrefix: "helloworld/"},
 			expectedError: ErrInvalidCharactersInStoragePrefix,
 		},
 		{
 			name:          "storage_prefix that has some character strings that have a meaning in unix paths (..)",
-			cfg:           Config{StorageBackendConfig: StorageBackendConfig{Backend: Filesystem}, StoragePrefix: ".."},
+			cfg:           Config{Backend: Filesystem, StoragePrefix: ".."},
 			expectedError: ErrInvalidCharactersInStoragePrefix,
 		},
 		{
 			name:          "storage_prefix that has some character strings that have a meaning in unix paths (.)",
-			cfg:           Config{StorageBackendConfig: StorageBackendConfig{Backend: Filesystem}, StoragePrefix: "."},
+			cfg:           Config{Backend: Filesystem, StoragePrefix: "."},
 			expectedError: ErrInvalidCharactersInStoragePrefix,
 		},
 		{
 			name:          "unsupported backend",
-			cfg:           Config{StorageBackendConfig: StorageBackendConfig{Backend: "flash drive"}},
+			cfg:           Config{Backend: "flash drive"},
 			expectedError: ErrUnsupportedStorageBackend,
 		},
 	}
@@ -183,13 +183,11 @@ func TestNewPrefixedBucketClient(t *testing.T) {
 		ctx := context.Background()
 		tempDir := t.TempDir()
 		cfg := Config{
-			StorageBackendConfig: StorageBackendConfig{
-				Backend: Filesystem,
-				Filesystem: filesystem.Config{
-					Directory: tempDir,
-				},
-			},
+			Backend:       Filesystem,
 			StoragePrefix: "prefix",
+			Filesystem: filesystem.Config{
+				Directory: tempDir,
+			},
 		}
 
 		client, err := NewClient(ctx, cfg, "test", util_log.Logger, nil)
@@ -213,11 +211,9 @@ func TestNewPrefixedBucketClient(t *testing.T) {
 		ctx := context.Background()
 		tempDir := t.TempDir()
 		cfg := Config{
-			StorageBackendConfig: StorageBackendConfig{
-				Backend: Filesystem,
-				Filesystem: filesystem.Config{
-					Directory: tempDir,
-				},
+			Backend: Filesystem,
+			Filesystem: filesystem.Config{
+				Directory: tempDir,
 			},
 		}
 

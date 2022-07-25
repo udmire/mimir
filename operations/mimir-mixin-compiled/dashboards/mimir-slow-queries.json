@@ -91,10 +91,8 @@
                   "title": "Slow queries",
                   "transformations": [
                      {
-                        "id": "extractFields",
-                        "options": {
-                           "source": "labels"
-                        }
+                        "id": "labelsToFields",
+                        "options": { }
                      },
                      {
                         "id": "calculateField",
@@ -117,15 +115,12 @@
                         "id": "organize",
                         "options": {
                            "excludeByName": {
-                              "Line": true,
-                              "Time": true,
                               "caller": true,
                               "cluster": true,
                               "container": true,
                               "host": true,
                               "id": true,
                               "job": true,
-                              "labels": true,
                               "level": true,
                               "line": true,
                               "method": true,

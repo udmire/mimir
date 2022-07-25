@@ -61,11 +61,6 @@
                   "renderer": "flot",
                   "seriesOverrides": [
                      {
-                        "alias": "request",
-                        "color": "#FFC000",
-                        "fill": 0
-                     },
-                     {
                         "alias": "limit",
                         "color": "#E02F44",
                         "fill": 0
@@ -91,15 +86,6 @@
                         "interval": "15s",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
-                        "legendLink": null,
-                        "step": 10
-                     },
-                     {
-                        "expr": "min(kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\",container=~\"distributor\",resource=\"cpu\"})",
-                        "format": "time_series",
-                        "interval": "15s",
-                        "intervalFactor": 2,
-                        "legendFormat": "request",
                         "legendLink": null,
                         "step": 10
                      }
@@ -165,11 +151,6 @@
                   "renderer": "flot",
                   "seriesOverrides": [
                      {
-                        "alias": "request",
-                        "color": "#FFC000",
-                        "fill": 0
-                     },
-                     {
                         "alias": "limit",
                         "color": "#E02F44",
                         "fill": 0
@@ -195,15 +176,6 @@
                         "interval": "15s",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
-                        "legendLink": null,
-                        "step": 10
-                     },
-                     {
-                        "expr": "min(kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\",container=~\"distributor\",resource=\"memory\"})",
-                        "format": "time_series",
-                        "interval": "15s",
-                        "intervalFactor": 2,
-                        "legendFormat": "request",
                         "legendLink": null,
                         "step": 10
                      }
@@ -431,11 +403,6 @@
                   "renderer": "flot",
                   "seriesOverrides": [
                      {
-                        "alias": "request",
-                        "color": "#FFC000",
-                        "fill": 0
-                     },
-                     {
                         "alias": "limit",
                         "color": "#E02F44",
                         "fill": 0
@@ -461,15 +428,6 @@
                         "interval": "15s",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
-                        "legendLink": null,
-                        "step": 10
-                     },
-                     {
-                        "expr": "min(kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\",container=~\"ingester\",resource=\"cpu\"})",
-                        "format": "time_series",
-                        "interval": "15s",
-                        "intervalFactor": 2,
-                        "legendFormat": "request",
                         "legendLink": null,
                         "step": 10
                      }
@@ -547,11 +505,6 @@
                   "renderer": "flot",
                   "seriesOverrides": [
                      {
-                        "alias": "request",
-                        "color": "#FFC000",
-                        "fill": 0
-                     },
-                     {
                         "alias": "limit",
                         "color": "#E02F44",
                         "fill": 0
@@ -577,15 +530,6 @@
                         "interval": "15s",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
-                        "legendLink": null,
-                        "step": 10
-                     },
-                     {
-                        "expr": "min(kube_pod_container_resource_requests{cluster=~\"$cluster\", namespace=~\"$namespace\",container=~\"ingester\",resource=\"memory\"})",
-                        "format": "time_series",
-                        "interval": "15s",
-                        "intervalFactor": 2,
-                        "legendFormat": "request",
                         "legendLink": null,
                         "step": 10
                      }

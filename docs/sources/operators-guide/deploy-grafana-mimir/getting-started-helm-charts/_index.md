@@ -1,9 +1,7 @@
 ---
-aliases:
-  - /docs/mimir/latest/operators-guide/deploying-grafana-mimir/getting-started-helm-charts/
-description: Learn how to get started with Grafana Mimir using the Helm chart.
-menuTitle: Getting started using the Helm chart
-title: Getting started with Grafana Mimir using the Helm chart
+title: "Getting started with Grafana Mimir using the Helm chart"
+menuTitle: "Getting started using the Helm chart"
+description: "Learn how to get started with Grafana Mimir using the Helm chart."
 weight: 25
 ---
 
@@ -249,7 +247,7 @@ First install Grafana, and then add Mimir as a Prometheus data source.
 
    You should be able to query metrics in [Grafana Explore](http://localhost:3000/explore),
    as well as create dashboard panels by using your newly configured `Mimir` data source.
-   For more information, see [Monitor Grafana Mimir]({{< relref "../../monitor-grafana-mimir" >}}).
+   For more information, see [Monitoring Grafana Mimir]({{<relref "../../monitoring-grafana-mimir/" >}}).
 
 ## Set up metamonitoring
 
