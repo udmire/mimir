@@ -60,6 +60,9 @@ func NewComponentsProxy(cfg Config, registry routes.Registry, logger log.Logger)
 	if HasComponent(cfg.Compactor) {
 		componentProxyConfigs = append(componentProxyConfigs, cfg.Compactor.WithName(Compactor))
 	}
+	if HasComponent(cfg.Scraper) {
+		componentProxyConfigs = append(componentProxyConfigs, cfg.Scraper.WithName(Scraper))
+	}
 
 	return &compsProxy{
 		logger: logger,
