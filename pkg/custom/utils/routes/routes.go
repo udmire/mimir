@@ -46,5 +46,5 @@ func (i *internalRoute) Matches(req *http.Request) bool {
 			return false
 		}
 	}
-	return i.pattern.Matches(req.RequestURI)
+	return i.pattern.Matches(req.URL.Path)
 }

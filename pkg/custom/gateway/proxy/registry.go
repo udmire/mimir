@@ -18,6 +18,7 @@ const (
 	Compactor     = "compactor"
 	AlertManager  = "alert-manager"
 	Purger        = "purger"
+	Scraper       = "scraper"
 
 	Default = "default"
 )
@@ -70,8 +71,7 @@ func Init(registry routes.Registry) {
 	registry.Register(Ruler, "/{promPrefix}/api/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
 	registry.Register(Ruler, "/{promPrefix}/api/v1/alerts", []string{http.MethodGet}, []string{access.RULES_READ})
 	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodPost, http.MethodDelete},
-		[]string{access.RULES_WRITE})
+	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodPost, http.MethodDelete}, []string{access.RULES_WRITE})
 
 	registry.Register(Compactor, "/compactor/*", []string{http.MethodGet}, []string{access.ADMIN, access.ADMIN_READ})
 
@@ -84,5 +84,8 @@ func Init(registry routes.Registry) {
 
 	registry.Register(Purger, "/purger/*", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 	registry.RegisterStrict(Purger, "/purger/*", []string{http.MethodPost}, []string{access.ADMIN, access.METRICS_DELETE})
+
+	registry.Register(Scraper, "/agent/api/v1/**", []string{http.MethodGet}, []string{access.SCRAPE_READ, access.SCRAPE_WRITE})
+	registry.Register(Scraper, "/agent/api/v1/**", []string{http.MethodPost, http.MethodPut, http.MethodDelete}, []string{access.SCRAPE_WRITE})
 
 }

@@ -10,4 +10,6 @@ const (
 	METRICS_WRITE  = "metrics:write"
 	RULES_READ     = "rules:read"
 	RULES_WRITE    = "rules:write"
+	SCRAPE_READ    = "scrape:read"
+	SCRAPE_WRITE   = "scrape:write"
 )

@@ -18,7 +18,9 @@ import (
 )
 
 const (
-	DataPushRoute = "/api/{path:.+}/push"
+	DataPushRoute     = "/api/{path:.+}/push"
+	TenantsDataHeader = "X-Scope-Tenants-Data"
+	TenantsDataValue  = "true"
 )
 
 type tenantsPushProxy struct {
@@ -55,25 +57,40 @@ type result struct {
 	err  error
 }
 
+func (t *tenantsPushProxy) isTenantsData(req *http.Request) bool {
+	if t.tenantCfg.MatchType != "header" {
+		return false
+	}
+
+	value := req.Header.Get(TenantsDataHeader)
+	return TenantsDataValue == value
+}
+
 func (t *tenantsPushProxy) Handler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		user := auth.GetPrincipal(req.Context())
 		user.WrapRequest(req)
 
-		var r mimirpb.WriteRequest
-		_, err := util.ParseProtoReader(req.Context(), req.Body, int(req.ContentLength), t.tenantCfg.MaxRecvMsgSize, nil, &r, util.RawSnappy)
-		if err != nil {
-			level.Error(t.logger).Log("err", err.Error())
-			http.Error(rw, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		grouped := groupByUserID(r, t.tenantCfg.TenantLabel)
-
-		var errs *prometheus.MultiError
-		results := t.dispatch(req, grouped)
-
 		code, body := 0, []byte("Ok")
+		var errs *prometheus.MultiError
+		var results []result
+
+		if !t.isTenantsData(req) {
+			var err error
+			code, body, err = t.direct(req)
+			if err != nil {
+			}
+			goto out
+		} else {
+			var r mimirpb.WriteRequest
+			_, err := util.ParseProtoReader(req.Context(), req.Body, int(req.ContentLength), t.tenantCfg.MaxRecvMsgSize, nil, &r, util.RawSnappy)
+			if err != nil {
+				level.Error(t.logger).Log("err", err.Error())
+				http.Error(rw, err.Error(), http.StatusBadRequest)
+				return
+			}
+			results = t.dispatch(req, groupByUserID(r, t.tenantCfg.TenantLabel))
+		}
 
 		// Return 204 regardless of errors if AcceptAll is enabled
 		if t.tenantCfg.AcceptAll {
@@ -154,6 +171,35 @@ func (p *tenantsPushProxy) send(ori *http.Request, tenant string, wr *mimirpb.Wr
 	}
 
 	req.SetBody(buf)
+
+	req.SetRequestURI(p.cfg.Url + ori.RequestURI)
+
+	if err = p.cli.Do(req, resp); err != nil {
+		return
+	}
+
+	code = resp.Header.StatusCode()
+	body = make([]byte, len(resp.Body()))
+	copy(body, resp.Body())
+
+	return
+}
+
+func (p *tenantsPushProxy) direct(ori *http.Request) (code int, body []byte, err error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+
+	defer func() {
+		fasthttp.ReleaseRequest(req)
+		fasthttp.ReleaseResponse(resp)
+	}()
+
+	sp, _ := opentracing.StartSpanFromContext(ori.Context(), "Gateway.tenantProxy")
+	defer sp.Finish()
+
+	copyFrom(req, ori)
+
+	req.SetBodyStream(ori.Body, req.Header.ContentLength())
 
 	req.SetRequestURI(p.cfg.Url + ori.RequestURI)
 
