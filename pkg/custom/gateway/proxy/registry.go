@@ -69,8 +69,8 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Ruler, "/ruler/*", access.ADMIN, access.ADMIN_READ)
 	registry.Register(Ruler, "/{promPrefix}/api/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
 	registry.Register(Ruler, "/{promPrefix}/api/v1/alerts", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
-	registry.Register(Ruler, "/{promPrefix}/config/v1/rules", []string{http.MethodPost, http.MethodDelete}, []string{access.RULES_WRITE})
+	registry.Register(Ruler, "/{promPrefix}/config/v1/rules**", []string{http.MethodGet}, []string{access.RULES_READ})
+	registry.Register(Ruler, "/{promPrefix}/config/v1/rules**", []string{http.MethodPost, http.MethodDelete}, []string{access.RULES_WRITE})
 	// Deduplicate
 	registry.Register(Ruler, "/api/v1/rules**", []string{http.MethodGet}, []string{access.RULES_READ})
 	registry.Register(Ruler, "/api/v1/rules**", []string{http.MethodPost, http.MethodDelete}, []string{access.RULES_WRITE})
