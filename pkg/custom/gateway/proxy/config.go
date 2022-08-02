@@ -21,7 +21,6 @@ type Config struct {
 	QueryFrontend  ComponentProxyConfig `yaml:"query_frontend"`
 	Ruler          ComponentProxyConfig `yaml:"ruler"`
 	StoreGateway   ComponentProxyConfig `yaml:"store_gateway"`
-	Scraper        ComponentProxyConfig `yaml:"scraper"`
 }
 
 type ComponentProxyConfig struct {
@@ -92,7 +91,6 @@ func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	c.QueryFrontend.RegisterFlagsWithPrefix(prefix+".query-frontend", f)
 	c.Ruler.RegisterFlagsWithPrefix(prefix+".ruler", f)
 	c.StoreGateway.RegisterFlagsWithPrefix(prefix+".store-gateway", f)
-	c.Scraper.RegisterFlagsWithPrefix(prefix+".scraper", f)
 }
 
 type TenantConfig struct {
