@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/mimir/pkg/custom/gateway/auth"
 	"github.com/grafana/mimir/pkg/custom/gateway/auth/access"
 	"github.com/grafana/mimir/pkg/custom/gateway/proxy"
+	"github.com/grafana/mimir/pkg/custom/utils/routes"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -28,9 +29,9 @@ type Gateway struct {
 
 	authServer *auth.AuthServer
 	proxies    []proxy.Proxy
-
-	registry prometheus.Registerer
-	logger   log.Logger
+	registry   routes.Registry
+	reg        prometheus.Registerer
+	logger     log.Logger
 }
 
 // NewGateway creates a new gateway server.
@@ -73,13 +74,16 @@ func NewGateway(cfg Config, authCfg auth.Config, client *admin.Client, reg prome
 		cfg:        &cfg,
 		authServer: authServer,
 		proxies:    proxies,
-		registry:   reg,
+		registry:   registry,
+		reg:        reg,
 		logger:     logger,
 	}, nil
 }
 
 func (g *Gateway) RegisterAPI(a *api.API) {
 	a.AuthMiddleware = g.authServer
+
+	g.registry.RegisterGroupLinks(a.RegisterComponent)
 
 	for _, proxy := range g.proxies {
 		method, additional := proxy.Methods()

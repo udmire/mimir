@@ -15,37 +15,6 @@ type Rewriter interface {
 	RouteMatcher
 }
 
-type RewriteFactory interface {
-	Rewrite
-
-	WithRouteAndRules(route Route, regex, replacement string) error
-}
-
-func RewriteFactoryWith() (RewriteFactory, error) {
-	return &internalRewriteFactory{}, nil
-}
-
-type internalRewriteFactory struct {
-	rewrites []Rewriter
-}
-
-func (i *internalRewriteFactory) WithRouteAndRules(route Route, regex, replacement string) error {
-	rewriter, err := NewRewriter(route, regex, regex)
-	if err != nil {
-		return err
-	}
-	i.rewrites = append(i.rewrites, rewriter)
-	return nil
-}
-
-func (i *internalRewriteFactory) Rewrite(req *http.Request) {
-	for _, rewrite := range i.rewrites {
-		if rewrite.Matches(req) {
-			rewrite.Rewrite(req)
-		}
-	}
-}
-
 type internalRouteReplacer struct {
 	routeMatcher RouteMatcher
 	regexp       *relabel.Regexp

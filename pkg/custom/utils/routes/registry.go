@@ -1,10 +1,18 @@
 package routes
 
+import (
+	"github.com/grafana/mimir/pkg/api"
+)
+
 type Registry interface {
 	Register(group, pattern string, methods []string, permissions []string)
 	RegisterStrict(group, pattern string, methods []string, permissions []string)
 	RegisterAll(group, pattern string, permissions ...string)
 	RegisterRewrite(group, pattern string, methods []string, regex, replacement string) error
+	RegisterLink(group, alias, path string)
+	RegisterDangerousLink(group, alias, path string)
+
+	RegisterGroupLinks(process func(group string, links ...api.IndexPageLink))
 
 	GetGroupRoutes(group string) []Route
 	GetGroupRewrites(group string) []Rewriter
@@ -16,12 +24,36 @@ func NewRegistry() Registry {
 	return &internalRegistry{
 		groupedRoutes:   map[string][]RoutePermissions{},
 		groupedRewrites: map[string][]Rewriter{},
+		groupedLinks:    map[string]Links{},
 	}
 }
 
 type internalRegistry struct {
 	groupedRoutes   map[string][]RoutePermissions
 	groupedRewrites map[string][]Rewriter
+	groupedLinks    map[string]Links
+}
+
+func (i *internalRegistry) RegisterGroupLinks(process func(group string, links ...api.IndexPageLink)) {
+	for group, links := range i.groupedLinks {
+		links.Register(group, process)
+	}
+}
+
+func (i *internalRegistry) RegisterDangerousLink(group, alias, path string) {
+	_, exists := i.groupedLinks[group]
+	if !exists {
+		i.groupedLinks[group] = &internalLinks{}
+	}
+	i.groupedLinks[group].AddDangerousLink(alias, path)
+}
+
+func (i *internalRegistry) RegisterLink(group, alias, path string) {
+	_, exists := i.groupedLinks[group]
+	if !exists {
+		i.groupedLinks[group] = &internalLinks{}
+	}
+	i.groupedLinks[group].AddLink(alias, path)
 }
 
 func (i *internalRegistry) Register(group, pattern string, methods []string, permissions []string) {
