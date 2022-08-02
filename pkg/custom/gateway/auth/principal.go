@@ -133,7 +133,7 @@ func (d *defaultPrincipalReader) Principal(req *http.Request) (token.IPrincipal,
 
 func (d *defaultPrincipalReader) CanProcess(req *http.Request) bool {
 	auth := req.Header.Get("Authorization")
-	return !strings.HasPrefix(auth, "Bearer ")
+	return auth == ""
 }
 
 func HeaderPrincipalReader(header string, tenants ...string) PrincipalReader {

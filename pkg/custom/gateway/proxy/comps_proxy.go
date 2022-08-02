@@ -60,9 +60,6 @@ func NewComponentsProxy(cfg Config, registry routes.Registry, logger log.Logger)
 	if HasComponent(cfg.Compactor) {
 		componentProxyConfigs = append(componentProxyConfigs, cfg.Compactor.WithName(Compactor))
 	}
-	if HasComponent(cfg.Scraper) {
-		componentProxyConfigs = append(componentProxyConfigs, cfg.Scraper.WithName(Scraper))
-	}
 
 	return &compsProxy{
 		logger: logger,
@@ -82,7 +79,14 @@ func (c *compsProxy) Handler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		logger := util_log.WithContext(req.Context(), c.logger)
 		config := c.GetComponentConfig(req)
-		proxy, err := NewProxy(logger, config)
+		rewrites := c.Registry.GetGroupRewrites(config.Name)
+		var proxy ReverseProxy
+		var err error
+		if len(rewrites) > 0 {
+			proxy, err = NewRewriteProxy(logger, config, rewrites)
+		} else {
+			proxy, err = NewProxy(logger, config)
+		}
 		if err != nil {
 			return
 		}

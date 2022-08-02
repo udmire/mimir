@@ -7,10 +7,14 @@ import (
 	"k8s.io/utils/strings/slices"
 )
 
+type RouteMatcher interface {
+	Matches(req *http.Request) bool
+}
+
 type Route interface {
+	RouteMatcher
 	Methods() []string
 	Pattern() string
-	Matches(req *http.Request) bool
 }
 
 func WithPattern(pattern string) Route {
