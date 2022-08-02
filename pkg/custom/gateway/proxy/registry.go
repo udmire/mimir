@@ -30,6 +30,8 @@ func Init(registry routes.Registry) {
 
 	registry.Register(AdminApi, "/admin/api/**", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 	registry.Register(AdminApi, "/admin/api/**", []string{http.MethodPost, http.MethodPut}, []string{access.ADMIN_READ, access.ADMIN})
+	// Register Admin Links
+	registry.RegisterLink(AdminApi, "Status", "/memberlist")
 
 	registry.RegisterAll(Instance, "/node/api/**", access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/", access.ADMIN, access.ADMIN_READ)
@@ -45,10 +47,18 @@ func Init(registry routes.Registry) {
 	registry.Register(Distributor, "/api/v1/push", []string{http.MethodPost}, []string{access.METRICS_WRITE})
 	registry.Register(Distributor, "/api/prom/push", []string{http.MethodPost}, []string{access.METRICS_WRITE})
 	registry.RegisterAll(Distributor, "/distributor/**", access.ADMIN, access.ADMIN_READ)
+	// Register Distributor Links
+	registry.RegisterLink(Distributor, "Ring status", "/distributor/ring")
+	registry.RegisterLink(Distributor, "Usage statistics", "/distributor/all_user_stats")
+	registry.RegisterLink(Distributor, "HA tracker status", "/distributor/ha_tracker")
 
 	registry.RegisterAll(Ingester, "/ingester/flush", access.ADMIN)
 	registry.RegisterAll(Ingester, "/ingester/shutdown", access.ADMIN)
 	registry.Register(Ingester, "/ingester/ring", []string{http.MethodGet, http.MethodPost}, []string{access.ADMIN, access.ADMIN_READ})
+	// Register ingester Links
+	registry.RegisterDangerousLink(Ingester, "Trigger a flush of data from ingester to storage", "/ingester/flush")
+	registry.RegisterDangerousLink(Ingester, "Trigger ingester shutdown", "/ingester/shutdown")
+	registry.RegisterLink(Ingester, "Ring status", "/ingester/ring")
 
 	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query", access.METRICS_READ)
 	registry.RegisterAll(QueryFrontend, "/{promPrefix}/api/v1/query_range", access.METRICS_READ)
@@ -65,6 +75,9 @@ func Init(registry routes.Registry) {
 	registry.Register(Querier, "/api/v1/user_stats", []string{http.MethodGet}, []string{access.METRICS_READ})
 
 	registry.Register(StoreGateway, "/store-gateway/**", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
+	// Register Store-Gateway Links
+	registry.RegisterLink(StoreGateway, "Ring status", "/store-gateway/ring")
+	registry.RegisterLink(StoreGateway, "Tenants & Blocks", "/store-gateway/tenants")
 
 	registry.RegisterAll(Ruler, "/ruler/*", access.ADMIN, access.ADMIN_READ)
 	registry.Register(Ruler, "/{promPrefix}/api/v1/rules", []string{http.MethodGet}, []string{access.RULES_READ})
@@ -75,8 +88,12 @@ func Init(registry routes.Registry) {
 	registry.Register(Ruler, "/api/v1/rules**", []string{http.MethodGet}, []string{access.RULES_READ})
 	registry.Register(Ruler, "/api/v1/rules**", []string{http.MethodPost, http.MethodDelete}, []string{access.RULES_WRITE})
 	_ = registry.RegisterRewrite(Ruler, "/api/v1/rules**", []string{http.MethodGet, http.MethodPost, http.MethodDelete}, "/api/v1/rules(.*)", "/prometheus/config/v1/rules$1")
+	// Register Ruler Links
+	registry.RegisterLink(Ruler, "Ring status", "/ruler/ring")
 
 	registry.Register(Compactor, "/compactor/*", []string{http.MethodGet}, []string{access.ADMIN, access.ADMIN_READ})
+	// Register Compactor Links
+	registry.RegisterLink(Compactor, "Ring status", "/compactor/ring")
 
 	registry.Register(AlertManager, "/multitenant_alertmanager/*", []string{http.MethodGet}, []string{access.ADMIN_READ})
 	registry.Register(AlertManager, "/multitenant_alertmanager/*", []string{http.MethodPost}, []string{access.ADMIN_READ, access.ADMIN})
@@ -84,6 +101,9 @@ func Init(registry routes.Registry) {
 	registry.Register(AlertManager, "/api/v1/alerts", []string{http.MethodPost, http.MethodDelete}, []string{access.ALERTS_WRITE})
 	registry.Register(AlertManager, "/alertmanager/**", []string{http.MethodPost}, []string{access.ALERTS_WRITE})
 	registry.Register(AlertManager, "/alertmanager/**", []string{http.MethodGet}, []string{access.ALERTS_READ})
+	// Register Alertmanager Links
+	registry.RegisterLink(AlertManager, "Status", "/multitenant_alertmanager/status")
+	registry.RegisterLink(AlertManager, "Ring status", "/multitenant_alertmanager/ring")
 
 	registry.Register(Purger, "/purger/*", []string{http.MethodGet}, []string{access.ADMIN_READ, access.ADMIN})
 	registry.RegisterStrict(Purger, "/purger/*", []string{http.MethodPost}, []string{access.ADMIN, access.METRICS_DELETE})
