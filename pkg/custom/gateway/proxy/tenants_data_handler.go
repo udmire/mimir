@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	DataPushRoute     = "/api/{path:.+}/push"
+	DataPushRoute     = "/api/v1/push"
 	TenantsDataHeader = "X-Scope-Tenants-Data"
 	TenantsDataValue  = "true"
 )
@@ -30,10 +30,6 @@ type tenantsPushProxy struct {
 	cli *fasthttp.Client
 
 	logger log.Logger
-}
-
-func (t *tenantsPushProxy) Methods() (string, []string) {
-	return http.MethodPost, nil
 }
 
 func NewTenantsPushProxy(cfg *ComponentProxyConfig, tenantCfg *TenantConfig, logger log.Logger) Proxy {
@@ -124,6 +120,10 @@ func (t *tenantsPushProxy) Handler() http.Handler {
 		rw.WriteHeader(code)
 		rw.Write(body)
 	})
+}
+
+func (t *tenantsPushProxy) RegisterRoutes(f func(path string, handler http.Handler, auth bool, gzipEnabled bool, method string, methods ...string)) {
+	f(DataPushRoute, t.Handler(), true, true, http.MethodPost)
 }
 
 func (p *tenantsPushProxy) dispatch(req *http.Request, m map[string]*mimirpb.WriteRequest) (res []result) {

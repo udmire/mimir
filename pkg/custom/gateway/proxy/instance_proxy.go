@@ -25,19 +25,6 @@ type instanceProxy struct {
 	proxy  ReverseProxy
 }
 
-func (c *instanceProxy) Methods() (string, []string) {
-	return http.MethodGet, []string{
-		http.MethodConnect,
-		http.MethodDelete,
-		http.MethodHead,
-		http.MethodOptions,
-		http.MethodPatch,
-		http.MethodPost,
-		http.MethodPut,
-		http.MethodTrace,
-	}
-}
-
 func NewInstanceProxy(cfg *InstanceProxyConfig, logger log.Logger) (Proxy, error) {
 	path := func(req *http.Request) string {
 		vars := mux.Vars(req)
@@ -88,10 +75,6 @@ func (c *instanceProxy) Handler() http.Handler {
 	})
 }
 
-func (c *instanceProxy) RegisterRoute(router *mux.Router) {
-	router.Handle(DynamicInstanceRoute, c.Handler())
-}
-
-func (c *instanceProxy) Path() string {
-	return DynamicInstanceRoute
+func (c *instanceProxy) RegisterRoutes(f func(path string, handler http.Handler, auth bool, gzipEnabled bool, method string, methods ...string)) {
+	f(DynamicInstanceRoute, c.Handler(), true, true, defaultMethod, defaultAdditionalMethods...)
 }

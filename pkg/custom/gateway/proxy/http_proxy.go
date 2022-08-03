@@ -8,10 +8,22 @@ import (
 	"github.com/grafana/mimir/pkg/custom/utils/routes"
 )
 
+var (
+	defaultMethod            = http.MethodGet
+	defaultAdditionalMethods = []string{
+		http.MethodConnect,
+		http.MethodDelete,
+		http.MethodHead,
+		http.MethodOptions,
+		http.MethodPatch,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodTrace,
+	}
+)
+
 type Proxy interface {
-	Handler() http.Handler
-	Path() string
-	Methods() (string, []string)
+	RegisterRoutes(func(path string, handler http.Handler, auth bool, gzipEnabled bool, method string, methods ...string))
 }
 
 func NewProxy(logger log.Logger, cfg *ComponentProxyConfig) (ReverseProxy, error) {
