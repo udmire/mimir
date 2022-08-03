@@ -4,36 +4,19 @@ import (
 	"net/http"
 
 	"github.com/go-kit/log"
-	"github.com/gorilla/mux"
 	"github.com/grafana/mimir/pkg/custom/utils/routes"
 	util_log "github.com/grafana/mimir/pkg/util/log"
 )
 
 const (
-	ComponentRoute = "/{path:.+}"
+	DefaultComponentRoute = "/{all:.+}"
 )
-
-type ComponentConfigFactory interface {
-	GetComponentConfig(req *http.Request) *ComponentProxyConfig
-}
 
 type configFactory struct {
 	Default *ComponentProxyConfig
 
 	Components []*ComponentProxyConfig
 	Registry   routes.Registry
-}
-
-func (c *configFactory) GetComponentConfig(req *http.Request) *ComponentProxyConfig {
-	for _, component := range c.Components {
-		permissions := c.Registry.GetGroupRoutesPermissions(component.Name)
-		for _, permission := range permissions {
-			if permission.Matches(req) {
-				return component
-			}
-		}
-	}
-	return c.Default
 }
 
 type compsProxy struct {
@@ -71,14 +54,9 @@ func NewComponentsProxy(cfg Config, registry routes.Registry, logger log.Logger)
 	}, nil
 }
 
-func (c *compsProxy) RegisterRoute(router *mux.Router) {
-	router.Handle(c.Path(), c.Handler())
-}
-
-func (c *compsProxy) Handler() http.Handler {
+func (c *compsProxy) Handler(config *ComponentProxyConfig) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		logger := util_log.WithContext(req.Context(), c.logger)
-		config := c.GetComponentConfig(req)
 		rewrites := c.Registry.GetGroupRewrites(config.Name)
 		var proxy ReverseProxy
 		var err error
@@ -94,19 +72,18 @@ func (c *compsProxy) Handler() http.Handler {
 	})
 }
 
-func (c *compsProxy) Path() string {
-	return ComponentRoute
-}
-
-func (c *compsProxy) Methods() (string, []string) {
-	return http.MethodGet, []string{
-		http.MethodConnect,
-		http.MethodDelete,
-		http.MethodHead,
-		http.MethodOptions,
-		http.MethodPatch,
-		http.MethodPost,
-		http.MethodPut,
-		http.MethodTrace,
+func (c *compsProxy) RegisterRoutes(f func(path string, handler http.Handler, auth bool, gzipEnabled bool, method string, methods ...string)) {
+	for _, component := range c.Components {
+		groupRoutes := c.Registry.GetGroupRoutes(component.Name)
+		for _, route := range groupRoutes {
+			method, additional := route.Methods()
+			if method == "" {
+				method = defaultMethod
+				additional = defaultAdditionalMethods
+			}
+			f(route.Path(), c.Handler(component), route.Auth(), route.Gzip(), method, additional...)
+		}
 	}
+
+	f(DefaultComponentRoute, c.Handler(c.Default), true, true, defaultMethod, defaultAdditionalMethods...)
 }

@@ -5,9 +5,9 @@ import (
 )
 
 type Registry interface {
-	Register(group, pattern string, methods []string, permissions []string)
-	RegisterStrict(group, pattern string, methods []string, permissions []string)
-	RegisterAll(group, pattern string, permissions ...string)
+	Register(group, pattern string, methods []string, auth, gzip bool, permissions ...string)
+	RegisterStrict(group, pattern string, methods []string, auth, gzip bool, permissions ...string)
+	RegisterAll(group, pattern string, auth, gzip bool, permissions ...string)
 	RegisterRewrite(group, pattern string, methods []string, regex, replacement string) error
 	RegisterLink(group, alias, path string)
 	RegisterDangerousLink(group, alias, path string)
@@ -56,18 +56,18 @@ func (i *internalRegistry) RegisterLink(group, alias, path string) {
 	i.groupedLinks[group].AddLink(alias, path)
 }
 
-func (i *internalRegistry) Register(group, pattern string, methods []string, permissions []string) {
-	route := WithPatternMethods(pattern, methods...)
+func (i *internalRegistry) Register(group, pattern string, methods []string, auth, gzip bool, permissions ...string) {
+	route := WithAuthGzipPatternMethods(pattern, auth, gzip, methods...)
 	i.groupedRoutes[group] = append(i.groupedRoutes[group], With(route, permissions...))
 }
 
-func (i *internalRegistry) RegisterAll(group, pattern string, permissions ...string) {
-	route := WithPattern(pattern)
+func (i *internalRegistry) RegisterAll(group, pattern string, auth, gzip bool, permissions ...string) {
+	route := WithAuthGzipPatternMethods(pattern, auth, gzip)
 	i.groupedRoutes[group] = append(i.groupedRoutes[group], With(route, permissions...))
 }
 
-func (i *internalRegistry) RegisterStrict(group, pattern string, methods []string, permissions []string) {
-	route := WithPatternMethods(pattern, methods...)
+func (i *internalRegistry) RegisterStrict(group, pattern string, methods []string, auth, gzip bool, permissions ...string) {
+	route := WithAuthGzipPatternMethods(pattern, auth, gzip, methods...)
 	i.groupedRoutes[group] = append(i.groupedRoutes[group], StrictWith(route, permissions...))
 }
 

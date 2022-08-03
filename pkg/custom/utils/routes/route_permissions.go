@@ -19,7 +19,7 @@ type RoutePermissions interface {
 func With(route Route, permissions ...string) RoutePermissions {
 	return &internalRoutePermissions{
 		route:       route,
-		pattern:     utils.MustCompile(route.Pattern()),
+		pattern:     utils.MustCompile(route.Path()),
 		strict:      false,
 		permissions: permissions,
 	}
@@ -28,7 +28,7 @@ func With(route Route, permissions ...string) RoutePermissions {
 func StrictWith(route Route, permissions ...string) RoutePermissions {
 	return &internalRoutePermissions{
 		route:       route,
-		pattern:     utils.MustCompile(route.Pattern()),
+		pattern:     utils.MustCompile(route.Path()),
 		strict:      false,
 		permissions: permissions,
 	}
@@ -59,7 +59,15 @@ func (i *internalRoutePermissions) GetRoute() Route {
 
 func (i *internalRoutePermissions) CopyWithPrefix(prefix string) RoutePermissions {
 	prefixPattern := fmt.Sprintf("%s%s", prefix, i.pattern)
-	route := WithPatternMethods(prefixPattern, i.route.Methods()...)
+	var methods []string
+	method, additional := i.route.Methods()
+	if method != "" {
+		methods = append(methods, method)
+	}
+	if len(additional) > 0 {
+		methods = append(methods, additional...)
+	}
+	route := WithAuthGzipPatternMethods(prefixPattern, i.route.Auth(), i.route.Gzip(), methods...)
 	if i.strict {
 		return StrictWith(route, i.permissions...)
 	}

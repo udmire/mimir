@@ -86,7 +86,6 @@ func (g *Gateway) RegisterAPI(a *api.API) {
 	g.registry.RegisterGroupLinks(a.RegisterComponent)
 
 	for _, proxy := range g.proxies {
-		method, additional := proxy.Methods()
-		a.RegisterRoute(proxy.Path(), proxy.Handler(), true, false, method, additional...)
+		proxy.RegisterRoutes(a.RegisterRoute)
 	}
 }
