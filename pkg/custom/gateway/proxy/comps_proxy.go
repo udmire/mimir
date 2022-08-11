@@ -81,7 +81,7 @@ func (c *compsProxy) RegisterRoutes(f func(path string, handler http.Handler, au
 				method = defaultMethod
 				additional = defaultAdditionalMethods
 			}
-			f(route.Path(), c.Handler(component), route.Auth(), route.Gzip(), method, additional...)
+			f(route.Pattern(), c.Handler(component), route.Auth(), route.Gzip(), method, additional...)
 		}
 	}
 
