@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/grafana/mimir/pkg/custom/utils"
 	"k8s.io/utils/strings/slices"
@@ -17,6 +19,7 @@ type Route interface {
 	Gzip() bool
 	Methods() (method string, additional []string)
 	Path() string
+	Pattern() string
 }
 
 type ComponentRoute interface {
@@ -82,4 +85,23 @@ func (i *internalRoute) Methods() (method string, additional []string) {
 
 func (i *internalRoute) Path() string {
 	return i.pattern.String()
+}
+
+func (i *internalRoute) Pattern() string {
+	return precessPattern(i.pattern.String())
+}
+
+func precessPattern(pattern string) string {
+	counter := 0
+	for {
+		if !strings.Contains(pattern, "/*") {
+			break
+		}
+		pattern = strings.Replace(pattern, "/*", fmt.Sprintf("/{param%d}", counter), 1)
+		counter++
+	}
+	if strings.HasSuffix(pattern, "**") {
+		pattern = strings.Replace(pattern, "**", fmt.Sprintf("{param%d:.+}", counter), 1)
+	}
+	return pattern
 }
