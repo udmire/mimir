@@ -120,8 +120,8 @@ func Init(registry routes.Registry) {
 	registry.Register(AlertManager, "/alertmanager/api/v1/status/buildinfo", []string{http.MethodGet}, false, true)
 	registry.Register(AlertManager, "/api/v1/alerts", []string{http.MethodGet}, true, true, access.ALERTS_READ)
 	registry.Register(AlertManager, "/api/v1/alerts", []string{http.MethodPost, http.MethodDelete}, true, true, access.ALERTS_WRITE)
-	registry.Register(AlertManager, "/alertmanager/**", []string{http.MethodPost}, true, true, access.ALERTS_WRITE)
-	registry.Register(AlertManager, "/alertmanager/**", []string{http.MethodGet}, true, true, access.ALERTS_READ)
+	registry.Register(AlertManager, "/alertmanager**", []string{http.MethodPost}, true, true, access.ALERTS_WRITE)
+	registry.Register(AlertManager, "/alertmanager**", []string{http.MethodGet}, true, true, access.ALERTS_READ)
 	// Register Alertmanager Links
 	registry.RegisterLink(AlertManager, "Status", "/multitenant_alertmanager/status")
 	registry.RegisterLink(AlertManager, "Ring status", "/multitenant_alertmanager/ring")
