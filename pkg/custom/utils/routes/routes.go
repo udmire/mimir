@@ -94,10 +94,15 @@ func (i *internalRoute) Pattern() string {
 func precessPattern(pattern string) string {
 	counter := 0
 	for {
-		if !strings.Contains(pattern, "/*") {
+		if !(strings.Contains(pattern, "/*") && strings.Contains(pattern, "*/")) {
 			break
 		}
-		pattern = strings.Replace(pattern, "/*", fmt.Sprintf("/{param%d}", counter), 1)
+
+		if strings.Contains(pattern, "/**/") {
+			pattern = strings.Replace(pattern, "/**/", fmt.Sprintf("/{param%d:.+}/", counter), 1)
+		} else if strings.Contains(pattern, "/*/") {
+			pattern = strings.Replace(pattern, "/*/", fmt.Sprintf("/{param%d}/", counter), 1)
+		}
 		counter++
 	}
 	if strings.HasSuffix(pattern, "**") {
