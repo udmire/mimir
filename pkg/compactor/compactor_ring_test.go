@@ -6,38 +6,47 @@
 package compactor
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/dskit/ring"
+	"github.com/grafana/mimir/pkg/util/log"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRingConfig_DefaultConfigToLifecyclerConfig(t *testing.T) {
-	cfg := RingConfig{}
-	expected := ring.LifecyclerConfig{}
-	flagext.DefaultValues(&cfg, &expected)
+	crc := RingConfig{}
+	expectedRc := ring.Config{}
+	flagext.DefaultValues(&crc, &expectedRc)
+
+	expectedLc := ring.BasicLifecyclerConfig{}
+	expectedLc.HeartbeatTimeout = crc.HeartbeatTimeout
+	expectedLc.HeartbeatPeriod = crc.HeartbeatPeriod
+	addr, _ := ring.GetInstanceAddr("", crc.InstanceInterfaceNames, log.Logger)
+	port := ring.GetInstancePort(crc.InstancePort, crc.ListenPort)
+	expectedLc.Addr = fmt.Sprintf("%s:%d", addr, port)
+	lc, err := crc.ToLifecyclerConfig(log.Logger)
+	rc := crc.ToRingConfig()
 
 	// The default config of the compactor ring must be the exact same
 	// of the default lifecycler config, except few options which are
 	// intentionally overridden
-	expected.ListenPort = cfg.ListenPort
-	expected.RingConfig.ReplicationFactor = 1
-	expected.RingConfig.SubringCacheDisabled = true
-	expected.RingConfig.KVStore.Store = "memberlist"
-	expected.NumTokens = 512
-	expected.MinReadyDuration = 0
-	expected.FinalSleep = 0
-	expected.InfNames = cfg.InstanceInterfaceNames
+	expectedLc.ID = lc.ID
+	expectedRc.ReplicationFactor = 1
+	expectedRc.SubringCacheDisabled = true
+	expectedRc.KVStore.Store = "memberlist"
+	expectedLc.NumTokens = 512
 
-	assert.Equal(t, expected, cfg.ToLifecyclerConfig())
+	assert.Nil(t, err)
+	assert.Equal(t, expectedLc, lc)
+	assert.Equal(t, expectedRc, rc)
 }
 
 func TestRingConfig_CustomConfigToLifecyclerConfig(t *testing.T) {
 	cfg := RingConfig{}
-	expected := ring.LifecyclerConfig{}
-	flagext.DefaultValues(&cfg, &expected)
+	flagext.DefaultValues(&cfg)
 
 	// Customize the compactor ring config
 	cfg.HeartbeatPeriod = 1 * time.Second
@@ -48,24 +57,25 @@ func TestRingConfig_CustomConfigToLifecyclerConfig(t *testing.T) {
 	cfg.InstanceAddr = "1.2.3.4"
 	cfg.ListenPort = 10
 
+	expectedLc := ring.BasicLifecyclerConfig{}
+	expectedRc := ring.Config{}
+	flagext.DefaultValues(&expectedRc)
 	// The lifecycler config should be generated based upon the compactor
 	// ring config
-	expected.HeartbeatPeriod = cfg.HeartbeatPeriod
-	expected.HeartbeatTimeout = cfg.HeartbeatTimeout
-	expected.RingConfig.HeartbeatTimeout = cfg.HeartbeatTimeout
-	expected.RingConfig.SubringCacheDisabled = true
-	expected.RingConfig.KVStore.Store = "memberlist"
-	expected.ID = cfg.InstanceID
-	expected.InfNames = cfg.InstanceInterfaceNames
-	expected.Port = cfg.InstancePort
-	expected.Addr = cfg.InstanceAddr
-	expected.ListenPort = cfg.ListenPort
+	expectedLc.HeartbeatPeriod = cfg.HeartbeatPeriod
+	expectedLc.HeartbeatTimeout = cfg.HeartbeatTimeout
+	expectedRc.HeartbeatTimeout = cfg.HeartbeatTimeout
+	expectedRc.SubringCacheDisabled = true
+	expectedRc.KVStore.Store = "memberlist"
+	expectedLc.ID = cfg.InstanceID
+	expectedLc.Addr = fmt.Sprintf("%s:%d", cfg.InstanceAddr, cfg.InstancePort)
 
 	// Hardcoded config
-	expected.RingConfig.ReplicationFactor = 1
-	expected.NumTokens = 512
-	expected.MinReadyDuration = 0
-	expected.FinalSleep = 0
+	expectedRc.ReplicationFactor = 1
+	expectedLc.NumTokens = 512
 
-	assert.Equal(t, expected, cfg.ToLifecyclerConfig())
+	lc, _ := cfg.ToLifecyclerConfig(log.Logger)
+	rc := cfg.ToRingConfig()
+	assert.Equal(t, expectedLc, lc)
+	assert.Equal(t, expectedRc, rc)
 }
