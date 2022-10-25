@@ -98,6 +98,7 @@ type Config struct {
 	PrintConfig         bool                   `yaml:"-"`
 	ApplicationName     string                 `yaml:"-"`
 
+	CustomConfig     `yaml:",inline"`
 	API              api.Config                      `yaml:"api"`
 	Server           server.Config                   `yaml:"server"`
 	Distributor      distributor.Config              `yaml:"distributor"`
@@ -144,6 +145,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	f.StringVar(&c.NoAuthTenant, "auth.no-auth-tenant", "anonymous", "Tenant ID to use when multitenancy is disabled.")
 	f.BoolVar(&c.PrintConfig, "print.config", false, "Print the config and exit.")
 
+	c.CustomConfig.RegisterFlags(f, logger)
 	c.API.RegisterFlags(f)
 	c.registerServerFlagsWithChangedDefaultValues(f)
 	c.Distributor.RegisterFlags(f, logger)
@@ -625,6 +627,7 @@ type Mimir struct {
 	ServiceMap    map[string]services.Service
 	ModuleManager *modules.Manager
 
+	CustomModule
 	API                      *api.API
 	Server                   *server.Server
 	Ring                     *ring.Ring
