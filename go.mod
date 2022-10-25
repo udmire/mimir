@@ -62,7 +62,6 @@ require (
 	github.com/grafana/regexp v0.0.0-20221005093135-b4c2bcb0a4b6
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.54.0
-	github.com/thanos-io/objstore v0.0.0-20221006135717-79dcec7fe604
 	github.com/valyala/fasthttp v1.40.0
 	go.opentelemetry.io/collector/pdata v0.54.0
 	go.opentelemetry.io/otel v1.10.0
@@ -120,7 +119,7 @@ require (
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/docker/go-connections v0.4.1-0.20210727194412-58542c764a11 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
+	github.com/efficientgo/e2e v0.13.1-0.20220922081603-45de9fc588a8 // indirect
 	github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
@@ -197,6 +196,7 @@ require (
 	github.com/spf13/cobra v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/thanos-io/objstore v0.0.0-20221006135717-79dcec7fe604 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vimeo/galaxycache v0.0.0-20210323154928-b7e5d71c067a // indirect

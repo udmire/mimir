@@ -273,10 +273,8 @@ github.com/dustin/go-humanize
 # github.com/edsrzf/mmap-go v1.1.0
 ## explicit; go 1.17
 github.com/edsrzf/mmap-go
-# github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd
-## explicit; go 1.15
-github.com/efficientgo/tools/core/pkg/logerrcapture
-github.com/efficientgo/tools/core/pkg/testutil
+# github.com/efficientgo/e2e v0.13.1-0.20220922081603-45de9fc588a8
+## explicit; go 1.18
 # github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb
 ## explicit
 github.com/facette/natsort
@@ -829,8 +827,6 @@ github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 # github.com/thanos-io/objstore v0.0.0-20221006135717-79dcec7fe604
 ## explicit; go 1.18
-github.com/thanos-io/objstore
-github.com/thanos-io/objstore/tracing
 # github.com/thanos-io/thanos v0.27.0-rc.0.0.20221013114534-ee07110026f8 => github.com/grafana/thanos v0.19.1-0.20220713162227-7bde03e4afa9
 ## explicit; go 1.17
 github.com/thanos-io/thanos/pkg/block

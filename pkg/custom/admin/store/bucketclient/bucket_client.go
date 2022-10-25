@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/mimir/pkg/custom/admin/store"
 	"github.com/grafana/mimir/pkg/storage/bucket"
 	"github.com/pkg/errors"
-	"github.com/thanos-io/objstore"
+	"github.com/thanos-io/thanos/pkg/objstore"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 )
