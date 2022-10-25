@@ -8,16 +8,17 @@ import (
 )
 
 const (
-	Ingester      = "ingester"
-	Distributor   = "distributor"
-	AdminApi      = "admin-api"
-	QueryFrontend = "query-frontend"
-	StoreGateway  = "store-gateway"
-	Ruler         = "ruler"
-	Querier       = "querier"
-	Compactor     = "compactor"
-	AlertManager  = "alert-manager"
-	Purger        = "purger"
+	Ingester       = "ingester"
+	Distributor    = "distributor"
+	AdminApi       = "admin-api"
+	QueryFrontend  = "query-frontend"
+	QueryScheduler = "query-scheduler"
+	StoreGateway   = "store-gateway"
+	Ruler          = "ruler"
+	Querier        = "querier"
+	Compactor      = "compactor"
+	AlertManager   = "alert-manager"
+	Purger         = "purger"
 
 	Default = "default"
 )
@@ -37,7 +38,8 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Instance, "/", true, true, access.ADMIN, access.ADMIN_READ)
 
 	registry.RegisterAll(Instance, "/config", true, true, access.ADMIN, access.ADMIN_READ)
-	registry.RegisterAll(Instance, "/runtime_config", true, true, access.ADMIN, access.ADMIN_READ)
+	registry.RegisterAll(Instance, "/runtime_config**", true, true, access.ADMIN, access.ADMIN_READ)
+	registry.RegisterAll(Instance, "/api/v1/user_limits", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/services", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/memberlist", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Instance, "/ready", true, true, access.ADMIN, access.ADMIN_READ)
@@ -45,10 +47,12 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Instance, "/debug/**", true, false, access.ADMIN, access.ADMIN_READ)
 
 	registry.Register(Distributor, "/api/v1/push", []string{http.MethodPost}, true, true, access.METRICS_WRITE)
+	registry.Register(Distributor, "/otlp/v1/metrics", []string{http.MethodPost}, true, true, access.METRICS_WRITE)
 	registry.Register(Distributor, "/api/prom/push", []string{http.MethodPost}, true, true, access.METRICS_WRITE)
 	registry.RegisterAll(Distributor, "/distributor/ring", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Distributor, "/distributor/all_user_stats", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.RegisterAll(Distributor, "/distributor/ha_tracker", true, true, access.ADMIN, access.ADMIN_READ)
+	registry.Register(Distributor, "/api/v1/user_stats**", []string{http.MethodGet}, true, true, access.ADMIN, access.ADMIN_READ)
 	// Register Distributor Links
 	registry.RegisterLink(Distributor, "Ring status", "/distributor/ring")
 	registry.RegisterLink(Distributor, "Usage statistics", "/distributor/all_user_stats")
@@ -76,7 +80,10 @@ func Init(registry routes.Registry) {
 
 	registry.Register(Querier, "/api/v1/user_stats", []string{http.MethodGet}, true, true, access.METRICS_READ)
 
-	registry.Register(StoreGateway, "/store-gateway/ring", []string{http.MethodGet}, true, true, access.ADMIN_READ, access.ADMIN)
+	registry.Register(QueryScheduler, "/query-scheduler/ring", []string{http.MethodGet, http.MethodPost}, true, true, access.ADMIN, access.ADMIN_READ)
+	registry.RegisterLink(QueryScheduler, "Ring status", "/query-scheduler/ring")
+
+	registry.RegisterAll(StoreGateway, "/store-gateway/ring", true, true, access.ADMIN_READ, access.ADMIN)
 	registry.Register(StoreGateway, "/store-gateway/tenants", []string{http.MethodGet}, true, true, access.ADMIN_READ, access.ADMIN)
 	registry.Register(StoreGateway, "/store-gateway/tenant/{tenant}/blocks", []string{http.MethodGet}, true, true, access.ADMIN_READ, access.ADMIN)
 	// Register Store-Gateway Links
@@ -110,6 +117,8 @@ func Init(registry routes.Registry) {
 	registry.RegisterAll(Compactor, "/compactor/ring", true, true, access.ADMIN, access.ADMIN_READ)
 	registry.Register(Compactor, "/api/v1/upload/block/{block}", []string{http.MethodPost}, true, true, access.ADMIN)
 	registry.Register(Compactor, "/api/v1/upload/block/{block}/files", []string{http.MethodPost}, true, true, access.ADMIN)
+	registry.Register(Compactor, "/compactor/delete_tenant", []string{http.MethodPost}, true, true, access.ADMIN)
+	registry.Register(Compactor, "/compactor/delete_tenant_status", []string{http.MethodGet}, true, true, access.ADMIN)
 	// Register Compactor Links
 	registry.RegisterLink(Compactor, "Ring status", "/compactor/ring")
 
