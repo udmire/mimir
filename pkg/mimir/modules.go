@@ -849,6 +849,8 @@ func (t *Mimir) setupModuleManager() error {
 		Backend:                  {QueryScheduler, Ruler, StoreGateway, Compactor, AlertManager, OverridesExporter},
 		All:                      {QueryFrontend, Querier, Ingester, Distributor, StoreGateway, Ruler, Compactor},
 	}
+
+	t.customModuleManager(mm, deps)
 	for mod, targets := range deps {
 		if err := mm.AddDependency(mod, targets...); err != nil {
 			return err
