@@ -7,6 +7,5 @@
         "storage": {
             "component": "storage"
         }
-    },
-    "plugins": ["sentence-case"]
+    }
 }

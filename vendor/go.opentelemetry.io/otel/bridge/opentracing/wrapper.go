@@ -21,8 +21,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// WrapperTracerProvider is an OpenTelemetry TracerProvider that wraps an
-// OpenTracing Tracer.
 type WrapperTracerProvider struct {
 	wTracer *WrapperTracer
 }

@@ -70,11 +70,9 @@ func (cfg tracerProviderConfig) MarshalLog() interface{} {
 	}
 }
 
-// TracerProvider is an OpenTelemetry TracerProvider. It provides Tracers to
-// instrumentation so it can trace operational flow through a system.
 type TracerProvider struct {
 	mu             sync.Mutex
-	namedTracer    map[instrumentation.Scope]*tracer
+	namedTracer    map[instrumentation.Library]*tracer
 	spanProcessors atomic.Value
 
 	// These fields are not protected by the lock mu. They are assumed to be
@@ -90,10 +88,10 @@ var _ trace.TracerProvider = &TracerProvider{}
 // NewTracerProvider returns a new and configured TracerProvider.
 //
 // By default the returned TracerProvider is configured with:
-//   - a ParentBased(AlwaysSample) Sampler
-//   - a random number IDGenerator
-//   - the resource.Default() Resource
-//   - the default SpanLimits.
+//  - a ParentBased(AlwaysSample) Sampler
+//  - a random number IDGenerator
+//  - the resource.Default() Resource
+//  - the default SpanLimits.
 //
 // The passed opts are used to override these default values and configure the
 // returned TracerProvider appropriately.
@@ -110,7 +108,7 @@ func NewTracerProvider(opts ...TracerProviderOption) *TracerProvider {
 	o = ensureValidTracerProviderConfig(o)
 
 	tp := &TracerProvider{
-		namedTracer: make(map[instrumentation.Scope]*tracer),
+		namedTracer: make(map[instrumentation.Library]*tracer),
 		sampler:     o.sampler,
 		idGenerator: o.idGenerator,
 		spanLimits:  o.spanLimits,
@@ -141,18 +139,18 @@ func (p *TracerProvider) Tracer(name string, opts ...trace.TracerOption) trace.T
 	if name == "" {
 		name = defaultTracerName
 	}
-	is := instrumentation.Scope{
+	il := instrumentation.Library{
 		Name:      name,
 		Version:   c.InstrumentationVersion(),
 		SchemaURL: c.SchemaURL(),
 	}
-	t, ok := p.namedTracer[is]
+	t, ok := p.namedTracer[il]
 	if !ok {
 		t = &tracer{
-			provider:             p,
-			instrumentationScope: is,
+			provider:               p,
+			instrumentationLibrary: il,
 		}
-		p.namedTracer[is] = t
+		p.namedTracer[il] = t
 		global.Info("Tracer created", "name", name, "version", c.InstrumentationVersion(), "schemaURL", c.SchemaURL())
 	}
 	return t
@@ -162,16 +160,16 @@ func (p *TracerProvider) Tracer(name string, opts ...trace.TracerOption) trace.T
 func (p *TracerProvider) RegisterSpanProcessor(s SpanProcessor) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	newSPS := spanProcessorStates{}
+	new := spanProcessorStates{}
 	if old, ok := p.spanProcessors.Load().(spanProcessorStates); ok {
-		newSPS = append(newSPS, old...)
+		new = append(new, old...)
 	}
 	newSpanSync := &spanProcessorState{
 		sp:    s,
 		state: &sync.Once{},
 	}
-	newSPS = append(newSPS, newSpanSync)
-	p.spanProcessors.Store(newSPS)
+	new = append(new, newSpanSync)
+	p.spanProcessors.Store(new)
 }
 
 // UnregisterSpanProcessor removes the given SpanProcessor from the list of SpanProcessors.
@@ -241,7 +239,10 @@ func (p *TracerProvider) Shutdown(ctx context.Context) error {
 	if !ok {
 		return fmt.Errorf("failed to load span processors")
 	}
-	var retErr error
+	if len(spss) == 0 {
+		return nil
+	}
+
 	for _, sps := range spss {
 		select {
 		case <-ctx.Done():
@@ -254,18 +255,12 @@ func (p *TracerProvider) Shutdown(ctx context.Context) error {
 			err = sps.sp.Shutdown(ctx)
 		})
 		if err != nil {
-			if retErr == nil {
-				retErr = err
-			} else {
-				// Poor man's list of errors
-				retErr = fmt.Errorf("%v; %v", retErr, err)
-			}
+			return err
 		}
 	}
-	return retErr
+	return nil
 }
 
-// TracerProviderOption configures a TracerProvider.
 type TracerProviderOption interface {
 	apply(tracerProviderConfig) tracerProviderConfig
 }

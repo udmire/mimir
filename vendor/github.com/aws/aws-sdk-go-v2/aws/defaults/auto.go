@@ -11,7 +11,7 @@ var getGOOS = func() string {
 }
 
 // ResolveDefaultsModeAuto is used to determine the effective aws.DefaultsMode when the mode
-// is set to aws.DefaultsModeAuto.
+// is set to aws.AutoDefaultsMode.
 func ResolveDefaultsModeAuto(region string, environment aws.RuntimeEnvironment) aws.DefaultsMode {
 	goos := getGOOS()
 	if goos == "android" || goos == "ios" {

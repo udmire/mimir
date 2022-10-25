@@ -57,7 +57,7 @@ func run(ctx context.Context, call func() error, retry *retryConfig, isIdempoten
 		bo.Initial = retry.backoff.Initial
 		bo.Max = retry.backoff.Max
 	}
-	var errorFunc func(err error) bool = ShouldRetry
+	var errorFunc func(err error) bool = shouldRetry
 	if retry.shouldRetry != nil {
 		errorFunc = retry.shouldRetry
 	}
@@ -89,16 +89,7 @@ func setRetryHeaderGRPC(_ context.Context) func(string, int) {
 	}
 }
 
-// ShouldRetry returns true if an error is retryable, based on best practice
-// guidance from GCS. See
-// https://cloud.google.com/storage/docs/retry-strategy#go for more information
-// on what errors are considered retryable.
-//
-// If you would like to customize retryable errors, use the WithErrorFunc to
-// supply a RetryOption to your library calls. For example, to retry additional
-// errors, you can write a custom func that wraps ShouldRetry and also specifies
-// additional errors that should return true.
-func ShouldRetry(err error) bool {
+func shouldRetry(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -140,7 +131,7 @@ func ShouldRetry(err error) bool {
 	}
 	// Unwrap is only supported in go1.13.x+
 	if e, ok := err.(interface{ Unwrap() error }); ok {
-		return ShouldRetry(e.Unwrap())
+		return shouldRetry(e.Unwrap())
 	}
 	return false
 }

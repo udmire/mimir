@@ -83,20 +83,16 @@ type Credentials struct {
 	// Source of the credentials
 	Source string
 
-	// States if the credentials can expire or not.
+	// Time the credentials will expire.
 	CanExpire bool
-
-	// The time the credentials will expire at. Should be ignored if CanExpire
-	// is false.
-	Expires time.Time
+	Expires   time.Time
 }
 
 // Expired returns if the credentials have expired.
 func (v Credentials) Expired() bool {
 	if v.CanExpire {
-		// Calling Round(0) on the current time will truncate the monotonic
-		// reading only. Ensures credential expiry time is always based on
-		// reported wall-clock time.
+		// Calling Round(0) on the current time will truncate the monotonic reading only. Ensures credential expiry
+		// time is always based on reported wall-clock time.
 		return !v.Expires.After(sdk.NowTime().Round(0))
 	}
 

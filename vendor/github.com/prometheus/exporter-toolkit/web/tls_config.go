@@ -16,15 +16,15 @@ package web
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/pkg/errors"
 	config_util "github.com/prometheus/common/config"
 	"gopkg.in/yaml.v2"
 )
@@ -44,10 +44,10 @@ type TLSStruct struct {
 	TLSKeyPath               string     `yaml:"key_file"`
 	ClientAuth               string     `yaml:"client_auth_type"`
 	ClientCAs                string     `yaml:"client_ca_file"`
-	CipherSuites             []Cipher   `yaml:"cipher_suites"`
-	CurvePreferences         []Curve    `yaml:"curve_preferences"`
-	MinVersion               TLSVersion `yaml:"min_version"`
-	MaxVersion               TLSVersion `yaml:"max_version"`
+	CipherSuites             []cipher   `yaml:"cipher_suites"`
+	CurvePreferences         []curve    `yaml:"curve_preferences"`
+	MinVersion               tlsVersion `yaml:"min_version"`
+	MaxVersion               tlsVersion `yaml:"max_version"`
 	PreferServerCipherSuites bool       `yaml:"prefer_server_cipher_suites"`
 }
 
@@ -64,7 +64,7 @@ type HTTPStruct struct {
 }
 
 func getConfig(configPath string) (*Config, error) {
-	content, err := os.ReadFile(configPath)
+	content, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func ConfigToTLSConfig(c *TLSStruct) (*tls.Config, error) {
 	loadCert := func() (*tls.Certificate, error) {
 		cert, err := tls.LoadX509KeyPair(c.TLSCertPath, c.TLSKeyPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load X509KeyPair: %w", err)
+			return nil, errors.Wrap(err, "failed to load X509KeyPair")
 		}
 		return &cert, nil
 	}
@@ -147,7 +147,7 @@ func ConfigToTLSConfig(c *TLSStruct) (*tls.Config, error) {
 
 	if c.ClientCAs != "" {
 		clientCAPool := x509.NewCertPool()
-		clientCAFile, err := os.ReadFile(c.ClientCAs)
+		clientCAFile, err := ioutil.ReadFile(c.ClientCAs)
 		if err != nil {
 			return nil, err
 		}
@@ -269,9 +269,9 @@ func Validate(tlsConfigPath string) error {
 	return err
 }
 
-type Cipher uint16
+type cipher uint16
 
-func (c *Cipher) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *cipher) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var s string
 	err := unmarshal((*string)(&s))
 	if err != nil {
@@ -279,27 +279,27 @@ func (c *Cipher) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	for _, cs := range tls.CipherSuites() {
 		if cs.Name == s {
-			*c = (Cipher)(cs.ID)
+			*c = (cipher)(cs.ID)
 			return nil
 		}
 	}
 	return errors.New("unknown cipher: " + s)
 }
 
-func (c Cipher) MarshalYAML() (interface{}, error) {
+func (c cipher) MarshalYAML() (interface{}, error) {
 	return tls.CipherSuiteName((uint16)(c)), nil
 }
 
-type Curve tls.CurveID
+type curve tls.CurveID
 
-var curves = map[string]Curve{
-	"CurveP256": (Curve)(tls.CurveP256),
-	"CurveP384": (Curve)(tls.CurveP384),
-	"CurveP521": (Curve)(tls.CurveP521),
-	"X25519":    (Curve)(tls.X25519),
+var curves = map[string]curve{
+	"CurveP256": (curve)(tls.CurveP256),
+	"CurveP384": (curve)(tls.CurveP384),
+	"CurveP521": (curve)(tls.CurveP521),
+	"X25519":    (curve)(tls.X25519),
 }
 
-func (c *Curve) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (c *curve) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var s string
 	err := unmarshal((*string)(&s))
 	if err != nil {
@@ -312,7 +312,7 @@ func (c *Curve) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return errors.New("unknown curve: " + s)
 }
 
-func (c *Curve) MarshalYAML() (interface{}, error) {
+func (c *curve) MarshalYAML() (interface{}, error) {
 	for s, curveid := range curves {
 		if *c == curveid {
 			return s, nil
@@ -321,16 +321,16 @@ func (c *Curve) MarshalYAML() (interface{}, error) {
 	return fmt.Sprintf("%v", c), nil
 }
 
-type TLSVersion uint16
+type tlsVersion uint16
 
-var tlsVersions = map[string]TLSVersion{
-	"TLS13": (TLSVersion)(tls.VersionTLS13),
-	"TLS12": (TLSVersion)(tls.VersionTLS12),
-	"TLS11": (TLSVersion)(tls.VersionTLS11),
-	"TLS10": (TLSVersion)(tls.VersionTLS10),
+var tlsVersions = map[string]tlsVersion{
+	"TLS13": (tlsVersion)(tls.VersionTLS13),
+	"TLS12": (tlsVersion)(tls.VersionTLS12),
+	"TLS11": (tlsVersion)(tls.VersionTLS11),
+	"TLS10": (tlsVersion)(tls.VersionTLS10),
 }
 
-func (tv *TLSVersion) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (tv *tlsVersion) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var s string
 	err := unmarshal((*string)(&s))
 	if err != nil {
@@ -343,7 +343,7 @@ func (tv *TLSVersion) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return errors.New("unknown TLS version: " + s)
 }
 
-func (tv *TLSVersion) MarshalYAML() (interface{}, error) {
+func (tv *tlsVersion) MarshalYAML() (interface{}, error) {
 	for s, v := range tlsVersions {
 		if *tv == v {
 			return s, nil

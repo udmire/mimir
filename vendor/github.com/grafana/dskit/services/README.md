@@ -131,10 +131,10 @@ func (s *exampleService) Send(msg string) bool {
 }
 ```
 
-Now `exampleService` is a service that can be started, observed for state changes, or stopped. As long as service is in Running state, clients can call its `Send` method:
+Now `serv` is a service that can be started, observed for state changes, or stopped. As long as service is in Running state, clients can call its `Send` method:
 
 ```go
-s := newExampleServ()
+s := newServ()
 s.StartAsync(context.Background())
 s.AwaitRunning(context.Background())
 // now collect() is running

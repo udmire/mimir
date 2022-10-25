@@ -216,17 +216,13 @@ func resolveRetryer(ctx context.Context, cfg *aws.Config, configs configs) error
 	if err != nil {
 		return err
 	}
-
-	if found {
-		cfg.Retryer = retryer
+	if !found {
 		return nil
 	}
 
-	// Only load the retry options if a custom retryer has not be specified.
-	if err = resolveRetryMaxAttempts(ctx, cfg, configs); err != nil {
-		return err
-	}
-	return resolveRetryMode(ctx, cfg, configs)
+	cfg.Retryer = retryer
+
+	return nil
 }
 
 func resolveEC2IMDSRegion(ctx context.Context, cfg *aws.Config, configs configs) error {
@@ -276,26 +272,6 @@ func resolveDefaultsModeOptions(ctx context.Context, cfg *aws.Config, configs co
 
 	cfg.DefaultsMode = defaultsMode
 	cfg.RuntimeEnvironment = environment
-
-	return nil
-}
-
-func resolveRetryMaxAttempts(ctx context.Context, cfg *aws.Config, configs configs) error {
-	maxAttempts, found, err := getRetryMaxAttempts(ctx, configs)
-	if err != nil || !found {
-		return err
-	}
-	cfg.RetryMaxAttempts = maxAttempts
-
-	return nil
-}
-
-func resolveRetryMode(ctx context.Context, cfg *aws.Config, configs configs) error {
-	retryMode, found, err := getRetryMode(ctx, configs)
-	if err != nil || !found {
-		return err
-	}
-	cfg.RetryMode = retryMode
 
 	return nil
 }
