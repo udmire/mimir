@@ -5,21 +5,18 @@ import (
 )
 
 type userDataKV struct {
-	key   interface{}
+	key   []byte
 	value interface{}
 }
 
 type userData []userDataKV
 
-func (d *userData) Set(key interface{}, value interface{}) {
-	if b, ok := key.([]byte); ok {
-		key = string(b)
-	}
+func (d *userData) Set(key string, value interface{}) {
 	args := *d
 	n := len(args)
 	for i := 0; i < n; i++ {
 		kv := &args[i]
-		if kv.key == key {
+		if string(kv.key) == key {
 			kv.value = value
 			return
 		}
@@ -33,31 +30,28 @@ func (d *userData) Set(key interface{}, value interface{}) {
 	if c > n {
 		args = args[:n+1]
 		kv := &args[n]
-		kv.key = key
+		kv.key = append(kv.key[:0], key...)
 		kv.value = value
 		*d = args
 		return
 	}
 
 	kv := userDataKV{}
-	kv.key = key
+	kv.key = append(kv.key[:0], key...)
 	kv.value = value
 	*d = append(args, kv)
 }
 
 func (d *userData) SetBytes(key []byte, value interface{}) {
-	d.Set(key, value)
+	d.Set(b2s(key), value)
 }
 
-func (d *userData) Get(key interface{}) interface{} {
-	if b, ok := key.([]byte); ok {
-		key = b2s(b)
-	}
+func (d *userData) Get(key string) interface{} {
 	args := *d
 	n := len(args)
 	for i := 0; i < n; i++ {
 		kv := &args[i]
-		if kv.key == key {
+		if string(kv.key) == key {
 			return kv.value
 		}
 	}
@@ -65,7 +59,7 @@ func (d *userData) Get(key interface{}) interface{} {
 }
 
 func (d *userData) GetBytes(key []byte) interface{} {
-	return d.Get(key)
+	return d.Get(b2s(key))
 }
 
 func (d *userData) Reset() {
@@ -80,15 +74,12 @@ func (d *userData) Reset() {
 	*d = (*d)[:0]
 }
 
-func (d *userData) Remove(key interface{}) {
-	if b, ok := key.([]byte); ok {
-		key = b2s(b)
-	}
+func (d *userData) Remove(key string) {
 	args := *d
 	n := len(args)
 	for i := 0; i < n; i++ {
 		kv := &args[i]
-		if kv.key == key {
+		if string(kv.key) == key {
 			n--
 			args[i], args[n] = args[n], args[i]
 			args[n].value = nil
@@ -100,5 +91,5 @@ func (d *userData) Remove(key interface{}) {
 }
 
 func (d *userData) RemoveBytes(key []byte) {
-	d.Remove(key)
+	d.Remove(b2s(key))
 }
