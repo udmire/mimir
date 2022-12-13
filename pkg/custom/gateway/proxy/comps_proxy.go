@@ -31,6 +31,7 @@ func NewComponentsProxy(cfg Config, registry routes.Registry, logger log.Logger)
 		cfg.AdminApi.WithName(AdminApi),
 		cfg.Distributor.WithName(Distributor),
 		cfg.QueryFrontend.WithName(QueryFrontend),
+		cfg.QueryScheduler.WithName(QueryScheduler),
 		cfg.StoreGateway.WithName(StoreGateway),
 		cfg.Ingester.WithName(Ingester),
 	}

@@ -19,6 +19,7 @@ type Config struct {
 	Distributor    ComponentProxyConfig `yaml:"distributor"`
 	Ingester       ComponentProxyConfig `yaml:"ingester"`
 	QueryFrontend  ComponentProxyConfig `yaml:"query_frontend"`
+	QueryScheduler ComponentProxyConfig `yaml:"query_scheduler"`
 	Ruler          ComponentProxyConfig `yaml:"ruler"`
 	StoreGateway   ComponentProxyConfig `yaml:"store_gateway"`
 }
@@ -89,6 +90,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet, logger log.Logger) {
 	c.Distributor.RegisterFlagsWithPrefix(prefix+".distributor", f)
 	c.Ingester.RegisterFlagsWithPrefix(prefix+".ingester", f)
 	c.QueryFrontend.RegisterFlagsWithPrefix(prefix+".query-frontend", f)
+	c.QueryScheduler.RegisterFlagsWithPrefix(prefix+".query-scheduler", f)
 	c.Ruler.RegisterFlagsWithPrefix(prefix+".ruler", f)
 	c.StoreGateway.RegisterFlagsWithPrefix(prefix+".store-gateway", f)
 }
