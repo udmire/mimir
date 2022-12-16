@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/grafana/mimir/pkg/cache"
+	"github.com/grafana/dskit/cache"
 	"github.com/grafana/mimir/pkg/custom/utils/token"
 )
 

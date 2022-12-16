@@ -1,9 +1,12 @@
 # Changelog
 
-## 2.5.0
+## main / unreleased
+
+### Grafana Mimir
 
 * [CHANGE] Store-gateway: Remove experimental `-blocks-storage.bucket-store.max-concurrent-reject-over-limit` flag. #3706
 * [FEATURE] Store-gateway: streaming of series. The store-gateway can now stream results back to the querier instead of buffering them. This is expected to greatly reduce peak memory consumption while keeping latency the same. You can enable this feature by setting `-blocks-storage.bucket-store.batch-series-size` to a value in the high thousands (5000-10000). This is still an experimental feature and is subject to a changing API and instability. #3540 #3546 #3587 #3620 #3645 #3355
+* [ENHANCEMENT] Added new metric `thanos_shipper_last_successful_upload_time`: Unix timestamp (in seconds) of the last successful TSDB block uploaded to the bucket. #3627
 * [ENHANCEMENT] Ruler: Added `-ruler.alertmanager-client.tls-enabled` configuration for alertmanager client. #3432 #3597
 * [ENHANCEMENT] Activity tracker logs now have `component=activity-tracker` label. #3556
 * [ENHANCEMENT] Distributor: remove labels with empty values #2439
@@ -15,7 +18,31 @@
 * [BUGFIX] Security: update prometheus/exporter-toolkit for CVE-2022-46146. #3675
 * [BUGFIX] Debian package: Fix post-install, environment file path and user creation. #3720
 
-## 2.5.0-rc.0
+### Mixin
+
+* [ENHANCEMENT] Alerts: Added `MimirIngesterInstanceHasNoTenants` alert that fires when an ingester replica is not receiving write requests for any tenant. #3681
+* [ENHANCEMENT] Alerts: Extended `MimirAllocatingTooMuchMemory` to check read-write deployment containers. #3710
+* [BUGFIX] Alerts: Fixed `MimirMemoryMapAreasTooHigh` alert when Mimir is deployed in read-write mode. #3626
+* [BUGFIX] Alerts: Fixed `MimirIngesterHasNotShippedBlocks` and `MimirIngesterHasNotShippedBlocksSinceStart` alerts for when Mimir is deployed in read-write or monolithic modes and updated them to use new `thanos_shipper_last_successful_upload_time` metric. #3627
+* [BUGFIX] Alerts: Fixed `MemoryMapAreasTooHigh` alert when Mimir is deployed in read-write mode. #3626
+* [BUGFIX] Alerts: Fixed `MimirCompactorSkippedBlocksWithOutOfOrderChunks` matching on non-existent label. #3628
+* [BUGFIX] Dashboards: Fix `Rollout Progress` dashboard incorrectly using Gateway metrics when Gateway was not enabled. #3709
+
+### Jsonnet
+
+* [ENHANCEMENT] Update `rollout-operator` to `v0.2.0`. #3624
+* [ENHANCEMENT] Add `user_24M` and `user_32M` classes to operations config. #3367
+
+### Mimirtool
+
+### Documentation
+
+* [BUGFIX] Querier: Remove assertion that the `-querier.max-concurrent` flag must also be set for the query-frontend. #3678
+* [ENHANCEMENT] Update migration from cortex documentation. #3662
+
+### Tools
+
+## 2.5.0
 
 ### Grafana Mimir
 
